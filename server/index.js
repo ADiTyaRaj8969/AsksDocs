@@ -25,6 +25,8 @@ app.use(cors({
   origin: (origin, cb) => {
     if (!origin) return cb(null, true)
     if (/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return cb(null, true)
+    // HF Spaces injects SPACE_HOST automatically (e.g. aditya-raj19-askdocs.hf.space)
+    if (process.env.SPACE_HOST && origin === `https://${process.env.SPACE_HOST}`) return cb(null, true)
     const extra = (process.env.ALLOWED_ORIGINS || '').split(',').map(o => o.trim()).filter(Boolean)
     if (extra.includes(origin)) return cb(null, true)
     cb(new Error(`CORS policy: origin ${origin} not allowed`))
