@@ -19,7 +19,7 @@ export default function App() {
   return (
     <>
       <ToastContainer />
-      <div className="min-h-screen flex flex-col bg-cream-200">
+      <div className="h-screen flex flex-col bg-cream-200 overflow-hidden">
 
         {/* ── Header ────────────────────────────────────────────────────── */}
         <header className="h-14 navbar-blur border-b border-black/[0.07] sticky top-0 z-20 shrink-0">
