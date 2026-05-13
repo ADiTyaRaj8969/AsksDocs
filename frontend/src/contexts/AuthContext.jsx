@@ -1,6 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import {
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signOut,
   onAuthStateChanged,
   setPersistence,
@@ -20,6 +22,13 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     setPersistence(auth, browserLocalPersistence).catch(() => {})
+
+    // Pick up any pending redirect sign-in (used when app is inside an iframe like HF Spaces)
+    getRedirectResult(auth).then((result) => {
+      if (result?.user) {
+        localStorage.setItem(SIGNIN_TIME_KEY, String(Date.now()))
+      }
+    }).catch(() => {})
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
@@ -44,8 +53,16 @@ export function AuthProvider({ children }) {
   }, [])
 
   const login = useCallback(async () => {
-    await signInWithPopup(auth, googleProvider)
-    localStorage.setItem(SIGNIN_TIME_KEY, String(Date.now()))
+    // signInWithPopup fails silently inside iframes (e.g. HF Spaces) because the
+    // popup can't postMessage back to an embedded frame. Use redirect in that case.
+    const inIframe = window.self !== window.top
+    if (inIframe) {
+      await signInWithRedirect(auth, googleProvider)
+      // onAuthStateChanged will fire after the redirect returns
+    } else {
+      await signInWithPopup(auth, googleProvider)
+      localStorage.setItem(SIGNIN_TIME_KEY, String(Date.now()))
+    }
   }, [])
 
   const logout = useCallback(async () => {
