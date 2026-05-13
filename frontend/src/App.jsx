@@ -43,16 +43,16 @@ export default function App() {
               <MenuIcon />
             </button>
 
-            <div className="flex items-center gap-2">
+            <a href="/" className="flex items-center gap-2 group">
               <div className="w-7 h-7 rounded-lg bg-brand flex items-center justify-center
-                shadow-brand-sm">
+                shadow-brand-sm group-hover:opacity-90 transition-opacity">
                 <SparkIcon sm />
               </div>
               <div className="leading-none">
                 <h1 className="text-sm font-bold text-brand tracking-tight">ASK Docs</h1>
                 <p className="text-[9px] text-stone-400 font-medium">AI Document Assistant</p>
               </div>
-            </div>
+            </a>
 
             <div className="ml-auto flex items-center gap-3">
               <span className="hidden sm:inline-flex items-center gap-1.5 text-[10px] font-semibold
