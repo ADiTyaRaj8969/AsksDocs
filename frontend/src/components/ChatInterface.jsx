@@ -209,14 +209,31 @@ function buildChatHtml(messages, userName, userPhoto) {
 </body></html>`
 }
 
+const CHAT_KEY = 'askdocs_chat'
+
 export default function ChatInterface() {
   const toast = useToast()
   const { user } = useAuth()
-  const [messages, setMessages] = useState([WELCOME])
+
+  // Load from sessionStorage so chat survives F5 reloads.
+  // sessionStorage is cleared automatically when the tab is closed.
+  const [messages, setMessages] = useState(() => {
+    try {
+      const stored = sessionStorage.getItem(CHAT_KEY)
+      if (stored) return JSON.parse(stored)
+    } catch {}
+    return [WELCOME]
+  })
+
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const bottomRef = useRef(null)
   const textareaRef = useRef(null)
+
+  // Persist messages to sessionStorage whenever they change
+  useEffect(() => {
+    try { sessionStorage.setItem(CHAT_KEY, JSON.stringify(messages)) } catch {}
+  }, [messages])
 
   const downloadPDF = () => {
     if (messages.length <= 1) { toast.error('No chat to export yet.'); return }
