@@ -77,11 +77,9 @@ export default function HomePage() {
 
           <div className="flex flex-wrap justify-center gap-3">
             <button onClick={handleSignIn} disabled={loading}
-              className="group relative flex items-center gap-2 px-6 py-3.5 rounded-xl bg-brand text-white
+              className="group flex items-center gap-2 px-6 py-3.5 rounded-xl bg-brand text-white
                 font-semibold text-sm shadow-brand hover:shadow-brand-lg active:scale-[0.98]
-                disabled:opacity-60 disabled:pointer-events-none transition-all duration-200
-                overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-b
-                before:from-white/20 before:to-transparent before:rounded-xl">
+                disabled:opacity-60 disabled:pointer-events-none transition-all duration-200">
               {loading
                 ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"/>
                 : <SparkIcon />}
@@ -197,30 +195,88 @@ export default function HomePage() {
 
 
 {/* ── Footer ───────────────────────────────────────────────────────── */}
-      <footer id="about" className="border-t border-black/[0.07] bg-white/40 py-8">
-        <div className="max-w-6xl mx-auto px-5 flex flex-col sm:flex-row items-center
-          justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-brand flex items-center justify-center">
-              <BrandIcon sm />
+      <footer id="about" className="border-t border-stone-200/70 bg-[#EDE9E0]">
+
+        {/* Top grid */}
+        <div className="max-w-6xl mx-auto px-6 pt-12 pb-10
+          grid grid-cols-1 sm:grid-cols-3 gap-10">
+
+          {/* Brand */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-brand flex items-center justify-center shadow-brand-sm">
+                <BrandIcon />
+              </div>
+              <span className="text-base font-bold text-brand tracking-tight">ASK Docs</span>
             </div>
-            <span className="text-sm font-bold text-brand">ASK Docs</span>
+            <p className="text-[12px] text-stone-500 leading-relaxed max-w-[220px]">
+              AI-powered document intelligence. Ask anything, get grounded answers.
+            </p>
+            <div className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"/>
+              <span className="text-[11px] text-stone-400 font-medium">All systems operational</span>
+            </div>
           </div>
-          <div className="flex items-center gap-5">
-            {[
-              { href: 'https://github.com/ADiTyaRaj8969/AsksDocs', label: 'GitHub' },
-              { href: 'mailto:adivid198986@gmail.com', label: 'Contact' },
-            ].map(({ href, label }) => (
-              <a key={label} href={href} target="_blank" rel="noreferrer"
-                className="text-xs text-stone-400 hover:text-brand transition-colors">
-                {label}
-              </a>
-            ))}
+
+          {/* Product */}
+          <div className="space-y-4">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-stone-400">Product</p>
+            <ul className="space-y-2.5">
+              {[
+                { label: 'Features',     href: '#features' },
+                { label: 'Security',     href: '#security' },
+                { label: 'How it works', href: '#features' },
+              ].map(({ label, href }) => (
+                <li key={label}>
+                  <a href={href}
+                    className="text-[13px] text-stone-500 hover:text-brand transition-colors font-medium">
+                    {label}
+                  </a>
+                </li>
+              ))}
+            </ul>
           </div>
+
+          {/* Connect */}
+          <div className="space-y-4">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-stone-400">Connect</p>
+            <ul className="space-y-2.5">
+              {[
+                { label: 'GitHub',  href: 'https://github.com/ADiTyaRaj8969/AsksDocs' },
+                { label: 'Contact', href: 'mailto:adivid198986@gmail.com' },
+              ].map(({ label, href }) => (
+                <li key={label}>
+                  <a href={href} target="_blank" rel="noreferrer"
+                    className="text-[13px] text-stone-500 hover:text-brand transition-colors font-medium">
+                    {label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+            <div className="flex flex-wrap gap-1.5 pt-1">
+              {['Gemini 2.5', 'ChromaDB', 'RAG'].map(t => (
+                <span key={t}
+                  className="text-[10px] font-semibold px-2 py-0.5 rounded-full
+                    bg-brand/[0.07] text-brand border border-brand/15">
+                  {t}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom bar */}
+        <div className="border-t border-stone-200/60 mx-6"/>
+        <div className="max-w-6xl mx-auto px-6 py-5 flex flex-col sm:flex-row
+          items-center justify-between gap-3">
           <p className="text-[11px] text-stone-400">
-            © 2026 ASK Docs by Aditya Raj. Your files never leave your device.
+            © 2026 <span className="text-stone-500 font-medium">Aditya Raj</span>. All rights reserved.
+          </p>
+          <p className="text-[11px] text-stone-400 flex items-center gap-1.5">
+            <SmLockIcon /> Your files never leave your device.
           </p>
         </div>
+
       </footer>
     </div>
   )
@@ -284,3 +340,4 @@ const ShieldIcon = () => <svg className="w-5 h-5" fill="none" stroke="currentCol
 const LockIcon = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/></svg>
 const VaultIcon = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125"/></svg>
 const TimerIcon = () => <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+const SmLockIcon = () => <svg className="w-3 h-3 shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/></svg>
