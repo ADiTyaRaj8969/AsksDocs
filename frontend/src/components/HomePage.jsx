@@ -97,14 +97,6 @@ export default function HomePage() {
             </button>
           </div>
 
-          <div className="flex items-center gap-6 pt-1">
-            {[['100%', 'Private'], ['RAG', 'Powered'], ['10-day', 'Session']].map(([val, label]) => (
-              <div key={label} className="text-center">
-                <p className="text-sm font-bold text-brand">{val}</p>
-                <p className="text-[11px] text-stone-400 font-medium">{label}</p>
-              </div>
-            ))}
-          </div>
         </div>
 
         {/* Right — AI visualization */}
@@ -161,18 +153,6 @@ export default function HomePage() {
             ))}
           </div>
 
-          {/* Answer chip */}
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 glass rounded-2xl px-4 py-2.5
-            flex items-center gap-3 shadow-card min-w-[220px]">
-            <div className="w-6 h-6 rounded-lg bg-brand flex items-center justify-center shrink-0">
-              <SparkIcon sm />
-            </div>
-            <div>
-              <p className="text-[11px] font-semibold text-stone-700">AI Answer Ready</p>
-              <p className="text-[10px] text-stone-400">3 citations · 98% confidence</p>
-            </div>
-            <div className="ml-auto w-2 h-2 rounded-full bg-emerald-500 animate-pulse"/>
-          </div>
         </div>
       </section>
 
@@ -321,7 +301,7 @@ export default function HomePage() {
             ))}
           </div>
           <p className="text-[11px] text-stone-400">
-            © 2025 ASK Docs. Your files never leave your device.
+            © 2026 ASK Docs by Aditya Raj. Your files never leave your device.
           </p>
         </div>
       </footer>
