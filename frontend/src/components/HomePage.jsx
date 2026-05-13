@@ -55,7 +55,7 @@ export default function HomePage() {
       </nav>
 
       {/* ── Hero ────────────────────────────────────────────────────────── */}
-      <section id="home" className="max-w-6xl mx-auto px-5 pt-20 pb-24 grid lg:grid-cols-2
+      <section id="home" className="max-w-6xl mx-auto px-5 pt-10 pb-16 grid lg:grid-cols-2
         gap-12 items-center">
         {/* Left */}
         <div className="space-y-7 animate-fade-up">
