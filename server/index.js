@@ -4,6 +4,7 @@ import cors from 'cors'
 import path from 'path'
 import { existsSync } from 'fs'
 import { fileURLToPath } from 'url'
+import rateLimit from 'express-rate-limit'
 import uploadRouter from './routes/upload.js'
 import queryRouter from './routes/query.js'
 import documentsRouter from './routes/documents.js'
@@ -31,8 +32,25 @@ app.use(cors({
   credentials: true,
 }))
 
-app.use(express.json({ limit: '4mb' }))  // chunks are text — 4 MB is generous
+app.use(express.json({ limit: '25mb' }))  // 20 MB doc → up to ~10 MB of text chunks
 app.use(express.urlencoded({ extended: true }))
+
+// ── Rate limiting ────────────────────────────────────────────────────────────
+const uploadLimiter = rateLimit({
+  windowMs: 60 * 1000,       // 1 minute window
+  max: 10,                   // max 10 uploads per minute per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many uploads. Please wait a minute and try again.' },
+})
+
+const queryLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 30,                   // max 30 queries per minute per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests. Please slow down.' },
+})
 
 // ── Health (public) ─────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => {
@@ -40,6 +58,10 @@ app.get('/health', (_req, res) => {
 })
 
 // ── Protected API routes ────────────────────────────────────────────────────
+// Rate limiters applied before routers at specific sub-paths
+app.use('/api/upload',    uploadLimiter)
+app.use('/api/query',     queryLimiter)
+
 app.use('/api', requireAuth, uploadRouter)
 app.use('/api', requireAuth, queryRouter)
 app.use('/api', requireAuth, documentsRouter)

@@ -4,7 +4,7 @@ import { storeChunks, deleteDocumentChunks } from '../services/vectorStore.js'
 
 const router = express.Router()
 
-const MAX_CHUNKS = 2000
+const MAX_CHUNKS = 5000
 const MAX_CHUNK_TEXT_LEN = 8000
 
 // POST /api/upload
