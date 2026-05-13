@@ -44,7 +44,7 @@ export default function HomePage() {
           {/* CTA */}
           <button onClick={handleSignIn} disabled={loading}
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-brand text-white
-              text-sm font-semibold shadow-brand-sm hover:shadow-brand active:scale-[0.97]
+              text-sm font-semibold active:scale-[0.97]
               disabled:opacity-60 disabled:pointer-events-none transition-all duration-150">
             {loading
               ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"/>
@@ -91,7 +91,7 @@ export default function HomePage() {
       </section>
 
       {/* ── Features ────────────────────────────────────────────────────── */}
-      <section id="features" className="bg-white/50 border-y border-black/[0.05] py-20">
+      <section id="features" className="py-20">
         <div className="max-w-6xl mx-auto px-5">
           <SectionLabel>Features</SectionLabel>
           <h2 className="text-3xl sm:text-4xl font-bold text-stone-900 mt-3 mb-2">
@@ -113,8 +113,8 @@ export default function HomePage() {
               { icon: <CloudIcon/>, title: 'Secure Workspace', desc: 'Isolated sessions, encrypted processing, zero document retention.' },
             ].map(({ icon, title, desc }) => (
               <div key={title}
-                className="group glass rounded-2xl p-5 space-y-3
-                  hover:shadow-brand-sm hover:-translate-y-0.5
+                className="group border border-stone-200/80 rounded-2xl p-5 space-y-3
+                  hover:border-brand/20 hover:-translate-y-0.5
                   transition-all duration-200 cursor-default">
                 <div className="w-10 h-10 rounded-xl bg-brand/[0.08] group-hover:bg-brand/[0.14]
                   flex items-center justify-center text-brand transition-colors">
@@ -165,7 +165,7 @@ export default function HomePage() {
       </section>
 
       {/* ── Security ─────────────────────────────────────────────────────── */}
-      <section id="security" className="bg-brand/[0.04] border-y border-brand/10 py-20">
+      <section id="security" className="py-20">
         <div className="max-w-6xl mx-auto px-5">
           <SectionLabel>Security</SectionLabel>
           <h2 className="text-3xl sm:text-4xl font-bold text-stone-900 mt-3 mb-12">
@@ -179,8 +179,8 @@ export default function HomePage() {
               { icon: <TimerIcon/>,  title: 'Temporary Sessions', desc: 'Documents cleared automatically. 10-day auth window.' },
             ].map(({ icon, title, desc }) => (
               <div key={title}
-                className="glass rounded-2xl p-6 space-y-3 border border-brand/10
-                  hover:border-brand/25 hover:shadow-brand-sm transition-all duration-200">
+                className="rounded-2xl p-6 space-y-3 border border-stone-200/80
+                  hover:border-brand/20 transition-all duration-200">
                 <div className="w-10 h-10 rounded-xl bg-brand flex items-center justify-center
                   text-white shadow-brand-sm">
                   {icon}
@@ -195,7 +195,7 @@ export default function HomePage() {
 
 
 {/* ── Footer ───────────────────────────────────────────────────────── */}
-      <footer id="about" className="border-t border-stone-200/70 bg-[#EDE9E0]">
+      <footer id="about" className="border-t border-stone-200/70 bg-cream-200">
 
         {/* Top grid */}
         <div className="max-w-6xl mx-auto px-6 pt-12 pb-10
