@@ -55,10 +55,8 @@ export default function HomePage() {
       </nav>
 
       {/* ── Hero ────────────────────────────────────────────────────────── */}
-      <section id="home" className="max-w-6xl mx-auto px-5 pt-10 pb-16 grid lg:grid-cols-2
-        gap-12 items-center">
-        {/* Left */}
-        <div className="space-y-7 animate-fade-up">
+      <section id="home" className="max-w-3xl mx-auto px-5 pt-10 pb-16 text-center">
+        <div className="space-y-7">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full
             border border-brand/20 bg-brand/[0.06] text-xs font-semibold text-brand">
             <span className="w-1.5 h-1.5 rounded-full bg-brand animate-pulse-brand"/>
@@ -71,13 +69,13 @@ export default function HomePage() {
             <span className="text-gradient-brand">Intelligent Conversations</span>
           </h1>
 
-          <p className="text-lg text-stone-500 leading-relaxed max-w-lg">
+          <p className="text-lg text-stone-500 leading-relaxed max-w-xl mx-auto">
             Upload PDFs, DOCX files, research papers, and images. ASK Docs uses
             AI-powered retrieval and semantic understanding to answer questions
             with contextual accuracy.
           </p>
 
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap justify-center gap-3">
             <button onClick={handleSignIn} disabled={loading}
               className="group flex items-center gap-2 px-6 py-3.5 rounded-xl bg-brand text-white
                 font-semibold text-sm shadow-brand hover:shadow-brand-lg active:scale-[0.98]
@@ -88,71 +86,7 @@ export default function HomePage() {
               {loading ? 'Opening…' : 'Try Now'}
               {!loading && <ArrowIcon />}
             </button>
-            <button onClick={handleSignIn} disabled={loading}
-              className="flex items-center gap-2 px-6 py-3.5 rounded-xl bg-white text-stone-700
-                font-semibold text-sm shadow-card hover:shadow-card-hover border border-stone-200/80
-                active:scale-[0.98] disabled:opacity-60 transition-all duration-200">
-              <GoogleIcon color />
-              Continue with Google
-            </button>
           </div>
-
-        </div>
-
-        {/* Right — AI visualization */}
-        <div className="relative h-[420px] lg:h-[480px] flex items-center justify-center">
-          {/* Background glow blobs */}
-          <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-3xl">
-            <div className="absolute top-8 right-12 w-56 h-56 rounded-full
-              bg-brand/10 blur-3xl animate-float float-delay-1"/>
-            <div className="absolute bottom-12 left-8 w-44 h-44 rounded-full
-              bg-brand/8 blur-2xl animate-float-slow float-delay-2"/>
-          </div>
-
-          {/* Central AI node */}
-          <div className="relative z-10">
-            <div className="w-24 h-24 rounded-2xl bg-brand glow-brand
-              flex items-center justify-center shadow-brand-lg node-glow">
-              <BrainIcon />
-            </div>
-
-            {/* Orbiting document cards */}
-            <FloatCard top="-top-16" left="-left-28" delay="float-delay-1"
-              icon={<PdfBadge/>} label="research.pdf" sub="3,412 chunks" />
-            <FloatCard top="-top-20" right="-right-24" delay="float-delay-2"
-              icon={<DocBadge/>} label="notes.docx" sub="824 chunks" />
-            <FloatCard bottom="-bottom-16" left="-left-32" delay="float-delay-3"
-              icon={<ImgBadge/>} label="diagram.png" sub="OCR extracted" />
-            <FloatCard bottom="-bottom-14" right="-right-28" delay=""
-              icon={<XlsBadge/>} label="data.xlsx" sub="1,150 chunks" />
-
-            {/* Connection lines (SVG) */}
-            <svg className="absolute inset-0 w-full h-full pointer-events-none"
-              style={{ left: '-150px', top: '-80px', width: '360px', height: '240px' }}>
-              {[
-                { x1: 100, y1: 80,  x2: 170, y2: 120 },
-                { x1: 240, y1: 80,  x2: 170, y2: 120 },
-                { x1: 80,  y1: 180, x2: 170, y2: 120 },
-                { x1: 260, y1: 180, x2: 170, y2: 120 },
-              ].map((l, i) => (
-                <line key={i} x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2}
-                  stroke="rgba(139,0,74,0.25)" strokeWidth="1.5"
-                  strokeDasharray="5,4" />
-              ))}
-            </svg>
-
-            {/* Semantic nodes */}
-            {[
-              { top: '-top-4', left: '-left-14', delay: 0 },
-              { top: 'top-2',  right: '-right-16', delay: 0.3 },
-              { bottom: 'bottom-0', left: '-left-10', delay: 0.6 },
-            ].map((n, i) => (
-              <div key={i} className={`absolute ${n.top ?? ''} ${n.bottom ?? ''} ${n.left ?? ''} ${n.right ?? ''}
-                w-3 h-3 rounded-full bg-brand/60 node-glow`}
-                style={{ animationDelay: `${n.delay}s` }}/>
-            ))}
-          </div>
-
         </div>
       </section>
 
@@ -259,27 +193,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Bottom CTA ───────────────────────────────────────────────────── */}
-      <section className="py-20 max-w-3xl mx-auto px-5 text-center space-y-7">
-        <h2 className="text-4xl sm:text-5xl font-extrabold text-stone-900 tracking-tight">
-          Start asking your documents
-        </h2>
-        <p className="text-stone-400 text-base max-w-xl mx-auto">
-          Join researchers, students, and professionals using ASK Docs to unlock
-          insight from their documents.
-        </p>
-        <button onClick={handleSignIn} disabled={loading}
-          className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-brand text-white
-            font-bold text-sm shadow-brand hover:shadow-brand-lg active:scale-[0.98]
-            disabled:opacity-60 transition-all duration-200">
-          {loading
-            ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"/>
-            : <SparkIcon />}
-          {loading ? 'Opening sign-in…' : 'Get started — it\'s free'}
-        </button>
-      </section>
 
-      {/* ── Footer ───────────────────────────────────────────────────────── */}
+{/* ── Footer ───────────────────────────────────────────────────────── */}
       <footer id="about" className="border-t border-black/[0.07] bg-white/40 py-8">
         <div className="max-w-6xl mx-auto px-5 flex flex-col sm:flex-row items-center
           justify-between gap-4">
@@ -320,26 +235,6 @@ function SectionLabel({ children }) {
     </span>
   )
 }
-
-function FloatCard({ top, bottom, left, right, icon, label, sub, delay }) {
-  return (
-    <div className={`absolute ${top ?? ''} ${bottom ?? ''} ${left ?? ''} ${right ?? ''}
-      glass rounded-2xl px-3 py-2.5 flex items-center gap-2.5 shadow-card
-      animate-float ${delay} min-w-[140px]`}>
-      <div className="shrink-0">{icon}</div>
-      <div>
-        <p className="text-[11px] font-semibold text-stone-700 leading-none">{label}</p>
-        <p className="text-[9px] text-stone-400 mt-0.5">{sub}</p>
-      </div>
-    </div>
-  )
-}
-
-/* ── Badge helpers ─────────────────────────────────────────────────────── */
-const PdfBadge = () => <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-red-100 text-red-600">PDF</span>
-const DocBadge = () => <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-600">DOC</span>
-const ImgBadge = () => <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-purple-100 text-purple-600">IMG</span>
-const XlsBadge = () => <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-600">XLS</span>
 
 /* ── Icons ─────────────────────────────────────────────────────────────── */
 const BrandIcon = ({ sm }) => (
