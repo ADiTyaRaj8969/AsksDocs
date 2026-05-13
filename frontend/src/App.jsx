@@ -1,15 +1,27 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import ChatInterface from './components/ChatInterface'
 import DocumentList from './components/DocumentList'
 import FileUpload from './components/FileUpload'
 import HomePage from './components/HomePage'
 import ToastContainer from './components/Toast'
 import { useAuth } from './contexts/AuthContext'
+import { clearAllDocuments } from './api/api'
 
 export default function App() {
   const { user, ready, logout } = useAuth()
   const [refreshSignal, setRefreshSignal] = useState(0)
   const [sidebarOpen, setSidebarOpen] = useState(true)
+
+  // Clear all uploaded documents at the start of every new browser session.
+  // sessionStorage resets when the tab is closed, so this runs once per tab open.
+  useEffect(() => {
+    if (!user) return
+    if (sessionStorage.getItem('session_active')) return
+    sessionStorage.setItem('session_active', '1')
+    clearAllDocuments()
+      .then(() => setRefreshSignal(s => s + 1))
+      .catch(() => {})
+  }, [user])
 
   if (!ready) return null
   if (!user)  return <><ToastContainer /><HomePage /></>
@@ -121,8 +133,8 @@ export default function App() {
                 <ol className="space-y-2">
                   {[
                     'Upload your document (PDF, DOCX, XLSX, image)',
-                    'Text is extracted in your browser — file stays private',
-                    'Only text chunks are sent for embedding',
+                    'Text is extracted entirely in your browser — the original file never leaves your device',
+                    'Text chunks are sent to the server for embedding and are cleared when you close this tab',
                     'Ask questions, get grounded answers with citations',
                   ].map((step, i) => (
                     <li key={i} className="flex gap-2 text-[11px] text-stone-500 leading-snug">
@@ -135,7 +147,7 @@ export default function App() {
                   ))}
                 </ol>
                 <p className="text-[10px] text-stone-400 pt-1">
-                  Your original file never leaves your device.
+                  Original file never leaves your device. Text chunks are auto-deleted on tab close.
                 </p>
               </div>
             </div>

@@ -2,7 +2,7 @@ import express from 'express'
 import path from 'path'
 import fs from 'fs'
 import { fileURLToPath } from 'url'
-import { listDocuments, deleteDocumentChunks, getDocumentStats } from '../services/vectorStore.js'
+import { listDocuments, deleteDocumentChunks, getDocumentStats, clearUserData } from '../services/vectorStore.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const UPLOAD_DIR = process.env.DATA_DIR
@@ -23,6 +23,12 @@ router.get('/documents', (req, res) => {
     return { name, chunks: stats.chunks, size }
   })
   res.json({ documents })
+})
+
+// DELETE /api/documents  — wipe ALL data for this user (session reset)
+router.delete('/documents', (req, res) => {
+  clearUserData(req.user.uid)
+  res.json({ message: 'All your documents have been cleared.' })
 })
 
 // DELETE /api/documents/:name

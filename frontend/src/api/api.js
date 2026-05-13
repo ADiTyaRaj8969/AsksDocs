@@ -54,6 +54,11 @@ export async function deleteDocument(name) {
   return data
 }
 
+export async function clearAllDocuments() {
+  const { data } = await api.delete('/documents')
+  return data
+}
+
 export async function queryDocuments(question, topK = 5) {
   const { data } = await api.post('/query', { question, top_k: topK })
   return data

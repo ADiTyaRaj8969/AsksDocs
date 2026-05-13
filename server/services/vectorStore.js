@@ -88,3 +88,8 @@ export function getDocumentStats(documentName, userId) {
   const count = getStore().filter(c => c.documentName === documentName && c.userId === userId).length
   return { chunks: count }
 }
+
+export function clearUserData(userId) {
+  _store = getStore().filter(c => c.userId !== userId)
+  persist()
+}
