@@ -93,3 +93,7 @@ export function clearUserData(userId) {
   _store = getStore().filter(c => c.userId !== userId)
   persist()
 }
+
+export function getUserChunkCount(userId) {
+  return getStore().filter(c => c.userId === userId).length
+}

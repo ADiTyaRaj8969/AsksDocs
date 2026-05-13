@@ -66,6 +66,14 @@ const queryLimiter = rateLimit({
   message: { error: 'Too many requests. Please slow down.' },
 })
 
+const documentsLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 60,                   // max 60 document list/delete ops per minute per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests. Please slow down.' },
+})
+
 // ── Health (public) ─────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', version: '1.0.0', timestamp: new Date().toISOString() })
@@ -75,6 +83,7 @@ app.get('/health', (_req, res) => {
 // Rate limiters applied before routers at specific sub-paths
 app.use('/api/upload',    uploadLimiter)
 app.use('/api/query',     queryLimiter)
+app.use('/api/documents', documentsLimiter)
 
 app.use('/api', requireAuth, uploadRouter)
 app.use('/api', requireAuth, queryRouter)
@@ -100,7 +109,10 @@ if (existsSync(DIST)) {
 // ── Global error handler ────────────────────────────────────────────────────
 app.use((err, _req, res, _next) => {
   console.error('[Error]', err.message)
-  res.status(err.status || 500).json({ error: err.message || 'Internal server error' })
+  const status = err.status || 500
+  // Only expose the message for client errors (4xx); mask internals for 5xx
+  const message = status < 500 ? err.message : 'Internal server error'
+  res.status(status).json({ error: message || 'Internal server error' })
 })
 
 app.listen(PORT, () => {

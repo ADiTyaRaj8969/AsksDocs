@@ -1,11 +1,27 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from './Toast'
+
+const NAV_LINKS = ['Home', 'Features', 'Security', 'About']
 
 export default function HomePage() {
   const { login } = useAuth()
   const toast = useToast()
   const [loading, setLoading] = useState(false)
+  const [activeSection, setActiveSection] = useState('home')
+
+  // Track which section is currently in view for active nav highlighting
+  useEffect(() => {
+    const ids = NAV_LINKS.map(l => l.toLowerCase())
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(e => { if (e.isIntersecting) setActiveSection(e.target.id) })
+      },
+      { rootMargin: '-60px 0px -60% 0px', threshold: 0 }
+    )
+    ids.forEach(id => { const el = document.getElementById(id); if (el) observer.observe(el) })
+    return () => observer.disconnect()
+  }, [])
 
   const handleSignIn = async () => {
     // HF Spaces embeds the app in a sandboxed iframe that blocks Firebase popup
@@ -30,23 +46,31 @@ export default function HomePage() {
       {/* ── Navbar ──────────────────────────────────────────────────────── */}
       <nav className="navbar-blur border-b border-black/[0.06] sticky top-0 z-50 h-16">
         <div className="max-w-6xl mx-auto px-5 h-full flex items-center justify-between">
-          {/* Logo */}
-          <div className="flex items-center gap-2.5">
+          {/* Logo — click to scroll to top */}
+          <a href="#home" className="flex items-center gap-2.5 group">
             <div className="w-8 h-8 rounded-xl bg-brand flex items-center justify-center
-              shadow-brand-sm">
+              shadow-brand-sm group-hover:opacity-90 transition-opacity">
               <BrandIcon />
             </div>
             <span className="text-lg font-bold text-brand tracking-tight">ASK Docs</span>
-          </div>
+          </a>
 
           {/* Nav links */}
           <div className="hidden md:flex items-center gap-6">
-            {['Home', 'Features', 'Security', 'About'].map((link) => (
-              <a key={link} href={`#${link.toLowerCase()}`}
-                className="text-sm font-medium text-stone-500 hover:text-brand transition-colors">
-                {link}
-              </a>
-            ))}
+            {NAV_LINKS.map((link) => {
+              const id = link.toLowerCase()
+              const isActive = activeSection === id
+              return (
+                <a key={link} href={`#${id}`}
+                  className={`text-sm font-medium transition-colors
+                    ${isActive ? 'text-brand' : 'text-stone-500 hover:text-brand'}`}>
+                  {link}
+                  {isActive && (
+                    <span className="block h-0.5 mt-0.5 rounded-full bg-brand"/>
+                  )}
+                </a>
+              )
+            })}
           </div>
 
           {/* CTA */}

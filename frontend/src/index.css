@@ -3,6 +3,11 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+    /* Offset scroll targets so the sticky navbar (64px) doesn't cover section headings */
+    scroll-padding-top: 72px;
+  }
   body {
     background-color: #F2EFE7;
     color: #1A0A10;

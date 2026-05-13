@@ -1,11 +1,13 @@
 import express from 'express'
 import { getEmbeddingsBatch } from '../services/embedder.js'
-import { storeChunks, deleteDocumentChunks } from '../services/vectorStore.js'
+import { storeChunks, deleteDocumentChunks, getUserChunkCount } from '../services/vectorStore.js'
 
 const router = express.Router()
 
 const MAX_CHUNKS = 5000
 const MAX_CHUNK_TEXT_LEN = 8000
+const MAX_PAGE_NUMBER = 99999
+const MAX_TOTAL_CHUNKS_PER_USER = 25000
 
 // POST /api/upload
 // Body: { documentName: string, chunks: [{ text, pageNumber }] }
@@ -34,7 +36,7 @@ router.post('/upload', async (req, res) => {
     if (c.text.length > MAX_CHUNK_TEXT_LEN) {
       return res.status(400).json({ error: `Chunk ${i} text exceeds ${MAX_CHUNK_TEXT_LEN} chars.` })
     }
-    if (typeof c.pageNumber !== 'number' || c.pageNumber < 1) {
+    if (typeof c.pageNumber !== 'number' || c.pageNumber < 1 || c.pageNumber > MAX_PAGE_NUMBER) {
       return res.status(400).json({ error: `Chunk ${i} has invalid pageNumber.` })
     }
   }
@@ -44,6 +46,13 @@ router.post('/upload', async (req, res) => {
 
   try {
     const userId = req.user.uid
+
+    // Enforce per-user storage cap
+    if (getUserChunkCount(userId) + chunks.length > MAX_TOTAL_CHUNKS_PER_USER) {
+      return res.status(400).json({
+        error: `Storage limit reached (max ${MAX_TOTAL_CHUNKS_PER_USER} chunks per account). Delete some documents first.`,
+      })
+    }
 
     // Remove stale data if the document is being re-uploaded
     deleteDocumentChunks(safeName, userId)
@@ -69,7 +78,12 @@ router.post('/upload', async (req, res) => {
     })
   } catch (err) {
     console.error('[Upload Error]', err)
-    res.status(500).json({ error: err.message || 'Failed to process document.' })
+    const isQuota = err.message?.toLowerCase().includes('quota') || err.message?.includes('429')
+    res.status(500).json({
+      error: isQuota
+        ? 'AI service quota exceeded. Please try again later.'
+        : 'Failed to process document.',
+    })
   }
 })
 

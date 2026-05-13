@@ -54,7 +54,12 @@ router.post('/query', async (req, res) => {
     res.json({ answer, citations })
   } catch (err) {
     console.error('[Query Error]', err)
-    res.status(500).json({ error: err.message || 'Failed to process query.' })
+    const isQuota = err.message?.toLowerCase().includes('quota') || err.message?.includes('429')
+    res.status(500).json({
+      error: isQuota
+        ? 'AI service quota exceeded. Please try again later.'
+        : 'Failed to process query.',
+    })
   }
 })
 
