@@ -310,6 +310,16 @@ export default function ChatInterface() {
           <MessageBubble key={i} msg={msg} />
         ))}
         {loading && <ThinkingBubble />}
+        {/* Nudge shown only when no conversation has started yet */}
+        {messages.length === 1 && !loading && (
+          <div className="mx-auto mt-2 max-w-xs rounded-xl border border-brand/20
+            bg-brand/[0.04] px-4 py-3 text-center">
+            <p className="text-xs font-semibold text-brand">Upload a document first</p>
+            <p className="text-[11px] text-stone-400 mt-0.5">
+              Use the sidebar to upload a PDF, DOCX, image, or spreadsheet, then ask away.
+            </p>
+          </div>
+        )}
         <div ref={bottomRef} />
       </div>
 
@@ -426,10 +436,12 @@ const UserAvatar = () => {
   const { user } = useAuth()
   const photoURL = user?.firebaseUser?.photoURL
   const displayName = user?.firebaseUser?.displayName
+  const [imgFailed, setImgFailed] = useState(false)
 
-  if (photoURL) {
+  if (photoURL && !imgFailed) {
     return (
       <img src={photoURL} alt={displayName || 'You'} referrerPolicy="no-referrer"
+        onError={() => setImgFailed(true)}
         className="w-7 h-7 rounded-xl object-cover shrink-0 mt-0.5 ring-2 ring-brand/20" />
     )
   }

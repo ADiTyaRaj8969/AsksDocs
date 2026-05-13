@@ -54,10 +54,7 @@ router.post('/upload', async (req, res) => {
       })
     }
 
-    // Remove stale data if the document is being re-uploaded
-    deleteDocumentChunks(safeName, userId)
-
-    // Embed all chunks (sequential to respect Gemini rate limits)
+    // Embed first — if this fails, old data is preserved (atomic re-upload)
     const texts = chunks.map((c) => c.text)
     const embeddings = await getEmbeddingsBatch(texts)
 
@@ -69,7 +66,10 @@ router.post('/upload', async (req, res) => {
       embedding:    embeddings[i],
     }))
 
+    // Only remove the old version once new embeddings are ready
+    deleteDocumentChunks(safeName, userId)
     storeChunks(chunksWithEmbeddings, userId)
+    console.log(`[Upload] user=${userId} doc="${safeName}" chunks=${chunks.length}`)
 
     res.json({
       message:      'Document processed successfully.',

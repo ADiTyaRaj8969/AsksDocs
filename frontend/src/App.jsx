@@ -66,13 +66,7 @@ export default function App() {
               </span>
 
               <div className="flex items-center gap-2 pl-3 border-l border-stone-200">
-                {user.firebaseUser.photoURL
-                  ? <img src={user.firebaseUser.photoURL} alt="" referrerPolicy="no-referrer"
-                      className="w-7 h-7 rounded-full ring-2 ring-brand/20"/>
-                  : <div className="w-7 h-7 rounded-full bg-brand flex items-center justify-center
-                      text-white text-xs font-bold">
-                      {user.firebaseUser.displayName?.[0] ?? '?'}
-                    </div>}
+                <HeaderAvatar user={user.firebaseUser} />
                 <span className="hidden sm:block text-xs text-stone-500 max-w-[120px] truncate">
                   {user.firebaseUser.displayName}
                 </span>
@@ -175,6 +169,23 @@ export default function App() {
         </div>
       </div>
     </>
+  )
+}
+
+/* ── Avatar with onerror fallback ──────────────────────────────────────── */
+function HeaderAvatar({ user }) {
+  const [imgFailed, setImgFailed] = useState(false)
+  if (user.photoURL && !imgFailed) {
+    return (
+      <img src={user.photoURL} alt="" referrerPolicy="no-referrer"
+        onError={() => setImgFailed(true)}
+        className="w-7 h-7 rounded-full ring-2 ring-brand/20" />
+    )
+  }
+  return (
+    <div className="w-7 h-7 rounded-full bg-brand flex items-center justify-center text-white text-xs font-bold">
+      {user.displayName?.[0] ?? '?'}
+    </div>
   )
 }
 

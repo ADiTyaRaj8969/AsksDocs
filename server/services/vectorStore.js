@@ -23,7 +23,8 @@ function getStore() {
     } else {
       try {
         _store = JSON.parse(fs.readFileSync(DB_PATH, 'utf8'))
-      } catch {
+      } catch (err) {
+        console.error('[VectorStore] store.json is corrupted — reinitialising empty store.', err.message)
         _store = []
       }
     }
@@ -42,6 +43,7 @@ function persist() {
 // ── Cosine similarity ────────────────────────────────────────────────────────
 
 function cosineSimilarity(a, b) {
+  if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length || a.length === 0) return 0
   let dot = 0, na = 0, nb = 0
   for (let i = 0; i < a.length; i++) {
     dot += a[i] * b[i]

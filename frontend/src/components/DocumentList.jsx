@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { deleteDocument, fetchDocuments } from '../api/api'
 import { useToast } from './Toast'
 
@@ -28,13 +28,20 @@ export default function DocumentList({ refreshSignal, onDocumentSelect }) {
   const toast = useToast()
   const [docs, setDocs] = useState([])
   const [loading, setLoading] = useState(false)
+  const [fetchError, setFetchError] = useState(false)
   const [deletingDoc, setDeletingDoc] = useState(null)
   const [confirmDelete, setConfirmDelete] = useState(null)
+  // Track the confirm-timeout per document so switching docs doesn't clear the wrong timer
+  const confirmTimerRef = useRef(null)
 
   const load = async () => {
     setLoading(true)
+    setFetchError(false)
     try { setDocs(await fetchDocuments()) }
-    catch { toast.error('Failed to load documents.') }
+    catch {
+      setFetchError(true)
+      toast.error('Failed to load documents.')
+    }
     finally { setLoading(false) }
   }
 
@@ -43,10 +50,16 @@ export default function DocumentList({ refreshSignal, onDocumentSelect }) {
 
   const handleDelete = async (name) => {
     if (confirmDelete !== name) {
+      // Cancel any pending confirmation timer before starting a new one
+      if (confirmTimerRef.current) clearTimeout(confirmTimerRef.current)
       setConfirmDelete(name)
-      setTimeout(() => setConfirmDelete(null), 3000)
+      confirmTimerRef.current = setTimeout(() => {
+        setConfirmDelete(null)
+        confirmTimerRef.current = null
+      }, 3000)
       return
     }
+    if (confirmTimerRef.current) { clearTimeout(confirmTimerRef.current); confirmTimerRef.current = null }
     setConfirmDelete(null); setDeletingDoc(name)
     try { await deleteDocument(name); toast.success(`"${name}" deleted.`); await load() }
     catch { toast.error('Failed to delete document.') }
@@ -59,6 +72,21 @@ export default function DocumentList({ refreshSignal, onDocumentSelect }) {
         {[1, 2, 3].map(i => (
           <div key={i} className="h-12 rounded-xl bg-stone-100 animate-pulse" />
         ))}
+      </div>
+    )
+  }
+
+  if (fetchError) {
+    return (
+      <div className="flex flex-col items-center gap-2 py-6 text-center">
+        <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center">
+          <ErrorIcon />
+        </div>
+        <p className="text-red-500 text-sm font-medium">Failed to load documents</p>
+        <button onClick={load}
+          className="text-xs text-brand hover:underline font-medium transition-colors">
+          Try again
+        </button>
       </div>
     )
   }
@@ -124,6 +152,11 @@ export default function DocumentList({ refreshSignal, onDocumentSelect }) {
 const EmptyIcon = () => (
   <svg className="w-5 h-5 text-stone-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
+  </svg>
+)
+const ErrorIcon = () => (
+  <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
   </svg>
 )
 const TrashIcon = () => (

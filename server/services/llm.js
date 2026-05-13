@@ -1,6 +1,15 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
 const LLM_MODEL = 'gemini-2.5-flash'
+const LLM_TIMEOUT_MS = 60_000
+
+function withTimeout(promise, ms) {
+  let timer
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error('LLM request timed out after 60 s')), ms)
+  })
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer))
+}
 
 /**
  * Generate a grounded answer using retrieved context chunks.
@@ -38,6 +47,6 @@ RULES:
 
 ANSWER:`
 
-  const result = await model.generateContent(prompt)
+  const result = await withTimeout(model.generateContent(prompt), LLM_TIMEOUT_MS)
   return result.response.text()
 }

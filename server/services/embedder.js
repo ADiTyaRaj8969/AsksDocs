@@ -23,14 +23,20 @@ export async function getEmbedding(text, taskType = 'RETRIEVAL_DOCUMENT') {
 }
 
 /**
- * Get embeddings for multiple texts (sequential to respect rate limits).
+ * Get embeddings for multiple texts in parallel batches of 5.
+ * Batching keeps throughput high while respecting Gemini rate limits.
  * @param {string[]} texts
  * @returns {Promise<number[][]>}
  */
 export async function getEmbeddingsBatch(texts) {
+  const BATCH_SIZE = 5
   const results = []
-  for (const text of texts) {
-    results.push(await getEmbedding(text, 'RETRIEVAL_DOCUMENT'))
+  for (let i = 0; i < texts.length; i += BATCH_SIZE) {
+    const batch = texts.slice(i, i + BATCH_SIZE)
+    const batchResults = await Promise.all(
+      batch.map(t => getEmbedding(t, 'RETRIEVAL_DOCUMENT'))
+    )
+    results.push(...batchResults)
   }
   return results
 }

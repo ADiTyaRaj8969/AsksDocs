@@ -27,13 +27,14 @@ export default function FileUpload({ onUploaded }) {
   const [stage, setStage] = useState('')
   const [stageIndex, setStageIndex] = useState(0)
   const [fileName, setFileName] = useState('')
+  const [uploadError, setUploadError] = useState('')
 
   const onDrop = useCallback(async (accepted, rejected) => {
     if (rejected.length) { toast.error('Unsupported file type. Use PDF, DOCX, XLSX, PNG or JPG.'); return }
     if (!accepted.length) return
 
     const file = accepted[0]
-    setUploading(true); setFileName(file.name); setStageIndex(0); setStage(STAGES[0])
+    setUploading(true); setUploadError(''); setFileName(file.name); setStageIndex(0); setStage(STAGES[0])
 
     try {
       const pages = await extractDocument(file)
@@ -49,7 +50,9 @@ export default function FileUpload({ onUploaded }) {
       toast.success(`"${result.documentName}" ready — ${result.chunksCreated} chunks embedded`)
       onUploaded?.()
     } catch (err) {
-      toast.error(err.response?.data?.error ?? err.message ?? 'Upload failed.')
+      const msg = err.response?.data?.error ?? err.message ?? 'Upload failed.'
+      setUploadError(msg)
+      toast.error(msg)
     } finally {
       setUploading(false); setStage(''); setFileName(''); setStageIndex(0)
     }
@@ -106,6 +109,24 @@ export default function FileUpload({ onUploaded }) {
           )}
         </div>
       </div>
+
+      {uploadError && !uploading && (
+        <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3">
+          <svg className="w-4 h-4 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+          </svg>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-semibold text-red-700">Upload failed</p>
+            <p className="text-[11px] text-red-500 mt-0.5 break-words">{uploadError}</p>
+          </div>
+          <button onClick={() => setUploadError('')}
+            className="text-red-400 hover:text-red-600 transition-colors shrink-0">
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+      )}
 
       {uploading && (
         <div className="space-y-2 bg-white rounded-xl border border-stone-200 p-3">

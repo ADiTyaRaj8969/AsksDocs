@@ -9,6 +9,7 @@ import uploadRouter from './routes/upload.js'
 import queryRouter from './routes/query.js'
 import documentsRouter from './routes/documents.js'
 import { requireAuth } from './middleware/auth.js'
+import { getUserChunkCount } from './services/vectorStore.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -29,6 +30,19 @@ app.use((_req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff')
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
   res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN')
+  res.setHeader('Content-Security-Policy', [
+    "default-src 'self'",
+    "script-src 'self' https://apis.google.com https://www.gstatic.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com",
+    "img-src 'self' data: blob: https:",
+    "connect-src 'self' https://*.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseinstallations.googleapis.com",
+    "frame-src https://accounts.google.com https://*.firebaseapp.com",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+  ].join('; '))
   next()
 })
 
@@ -76,7 +90,10 @@ const documentsLimiter = rateLimit({
 
 // ── Health (public) ─────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => {
-  res.json({ status: 'ok', version: '1.0.0', timestamp: new Date().toISOString() })
+  let storageOk = true
+  try { getUserChunkCount('__healthcheck__') } catch { storageOk = false }
+  const status = storageOk ? 'ok' : 'degraded'
+  res.status(storageOk ? 200 : 503).json({ status, version: '1.0.0', timestamp: new Date().toISOString() })
 })
 
 // ── Protected API routes ────────────────────────────────────────────────────
@@ -93,7 +110,16 @@ app.use('/api', requireAuth, documentsRouter)
 const DIST = path.join(__dirname, '..', 'frontend', 'dist')
 
 if (existsSync(DIST)) {
-  app.use(express.static(DIST))
+  // Hashed asset filenames (JS/CSS) can be cached for 1 year; HTML must revalidate
+  app.use(express.static(DIST, {
+    setHeaders(res, filePath) {
+      if (/\.(js|css|woff2?|ttf|otf|svg|png|jpg|webp)$/.test(filePath)) {
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
+      } else {
+        res.setHeader('Cache-Control', 'no-cache')
+      }
+    },
+  }))
   app.get('*', (req, res) => {
     if (req.path.startsWith('/api/')) {
       return res.status(404).json({ error: 'API route not found' })
@@ -115,7 +141,16 @@ app.use((err, _req, res, _next) => {
   res.status(status).json({ error: message || 'Internal server error' })
 })
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`\n  AskDocs API  →  http://localhost:${PORT}`)
   console.log(`Health check →  http://localhost:${PORT}/health\n`)
+})
+
+// Graceful shutdown — finish in-flight requests before exiting
+process.on('SIGTERM', () => {
+  console.log('[Shutdown] SIGTERM received, closing server…')
+  server.close(() => {
+    console.log('[Shutdown] All connections closed.')
+    process.exit(0)
+  })
 })
