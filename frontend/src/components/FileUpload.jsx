@@ -3,6 +3,7 @@ import { useDropzone } from 'react-dropzone'
 import { extractDocument } from '../lib/extractor'
 import { chunkPages } from '../lib/chunker'
 import { uploadChunks } from '../api/api'
+import { useAuth } from '../contexts/AuthContext'
 import { useToast } from './Toast'
 
 const ACCEPTED = {
@@ -23,6 +24,7 @@ const STAGES = [
 
 export default function FileUpload({ onUploaded }) {
   const toast = useToast()
+  const { user, requireLogin } = useAuth()
   const [uploading, setUploading] = useState(false)
   const [stage, setStage] = useState('')
   const [stageIndex, setStageIndex] = useState(0)
@@ -34,6 +36,13 @@ export default function FileUpload({ onUploaded }) {
       return
     }
     if (!accepted.length) return
+
+    // Prompt sign-in if not authenticated yet
+    const ok = await requireLogin()
+    if (!ok) {
+      toast.error('Please sign in to upload documents.')
+      return
+    }
 
     const file = accepted[0]
     setUploading(true)

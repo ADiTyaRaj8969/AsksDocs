@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { queryDocuments } from '../api/api'
+import { useAuth } from '../contexts/AuthContext'
 import CitationPanel from './CitationPanel'
 import { useToast } from './Toast'
 
@@ -13,6 +14,7 @@ const WELCOME = {
 
 export default function ChatInterface() {
   const toast = useToast()
+  const { requireLogin } = useAuth()
   const [messages, setMessages] = useState([WELCOME])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -34,6 +36,13 @@ export default function ChatInterface() {
   const send = async () => {
     const question = input.trim()
     if (!question || loading) return
+
+    // Prompt sign-in if not authenticated yet
+    const ok = await requireLogin()
+    if (!ok) {
+      toast.error('Please sign in to ask questions.')
+      return
+    }
 
     setMessages((m) => [...m, { role: 'user', content: question, citations: [] }])
     setInput('')
