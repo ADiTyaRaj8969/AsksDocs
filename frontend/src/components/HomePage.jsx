@@ -77,9 +77,11 @@ export default function HomePage() {
 
           <div className="flex flex-wrap justify-center gap-3">
             <button onClick={handleSignIn} disabled={loading}
-              className="group flex items-center gap-2 px-6 py-3.5 rounded-xl bg-brand text-white
+              className="group relative flex items-center gap-2 px-6 py-3.5 rounded-xl bg-brand text-white
                 font-semibold text-sm shadow-brand hover:shadow-brand-lg active:scale-[0.98]
-                disabled:opacity-60 disabled:pointer-events-none transition-all duration-200">
+                disabled:opacity-60 disabled:pointer-events-none transition-all duration-200
+                overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-b
+                before:from-white/20 before:to-transparent before:rounded-xl">
               {loading
                 ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"/>
                 : <SparkIcon />}
