@@ -1,0 +1,112 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ── Frontend: install, build ──────────────────────────────────────────────
+  frontend:
+    name: Frontend build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          # Placeholder values so the build succeeds in CI without real keys
+          VITE_GOOGLE_CLIENT_ID: ci_placeholder
+          VITE_FIREBASE_API_KEY: ci_placeholder
+          VITE_FIREBASE_AUTH_DOMAIN: ci_placeholder
+          VITE_FIREBASE_PROJECT_ID: ci_placeholder
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist
+          retention-days: 3
+
+  # ── Server: install, smoke-check ─────────────────────────────────────────
+  server:
+    name: Server smoke-check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Syntax check (Node --check)
+        run: node --check index.js
+
+  # ── Python backend: install, import check ────────────────────────────────
+  python-backend:
+    name: Python backend check
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r backend/requirements.txt
+
+      - name: Import check
+        run: |
+          cd backend
+          GEMINI_API_KEY=ci_placeholder python -c "
+          from models.schemas import UploadResponse, QueryResponse, DocumentListResponse
+          from services.chunker import chunk_text
+          print('Python imports OK')
+          "
+
+  # ── Deploy to Render (main branch only) ──────────────────────────────────
+  deploy:
+    name: Deploy to Render
+    needs: [frontend, server]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Trigger Render deploy
+        run: |
+          curl -s -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            --fail-with-body
+        # Add RENDER_DEPLOY_HOOK_URL in GitHub → Settings → Secrets
+        # Get the URL from: Render dashboard → your service → Settings → Deploy Hook
