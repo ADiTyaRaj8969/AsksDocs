@@ -20,6 +20,18 @@ if (!process.env.GEMINI_API_KEY) {
 const app = express()
 const PORT = process.env.PORT || 5000
 
+// Trust the first proxy (HF Spaces / Nginx) so IP-based rate limiting works correctly
+app.set('trust proxy', 1)
+
+// ── Security headers ─────────────────────────────────────────────────────────
+app.use((_req, res, next) => {
+  res.removeHeader('X-Powered-By')
+  res.setHeader('X-Content-Type-Options', 'nosniff')
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+  next()
+})
+
 // ── CORS ────────────────────────────────────────────────────────────────────
 app.use(cors({
   origin: (origin, cb) => {

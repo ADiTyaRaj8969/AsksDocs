@@ -63,7 +63,7 @@ export default function HomePage() {
       </nav>
 
       {/* ── Hero ────────────────────────────────────────────────────────── */}
-      <section id="home" className="max-w-3xl mx-auto px-5 pt-10 pb-16 text-center">
+      <section id="home" className="max-w-3xl mx-auto px-5 pt-20 pb-16 text-center">
         <div className="space-y-7">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full
             border border-brand/20 bg-brand/[0.06] text-xs font-semibold text-brand">

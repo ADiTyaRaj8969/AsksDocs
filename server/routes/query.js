@@ -13,6 +13,10 @@ router.post('/query', async (req, res) => {
     return res.status(400).json({ error: 'Question cannot be empty.' })
   }
 
+  if (question.length > 2000) {
+    return res.status(400).json({ error: 'Question is too long (max 2000 characters).' })
+  }
+
   try {
     // 1. Embed the query
     const queryEmbedding = await getQueryEmbedding(question.trim())
