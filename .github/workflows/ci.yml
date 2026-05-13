@@ -103,6 +103,7 @@ jobs:
     needs: [frontend, server]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    continue-on-error: true
 
     steps:
       - name: Trigger Render deploy
@@ -110,5 +111,3 @@ jobs:
           curl -s -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}" \
             -H "Content-Type: application/json" \
             --fail-with-body
-        # Add RENDER_DEPLOY_HOOK_URL in GitHub → Settings → Secrets
-        # Get the URL from: Render dashboard → your service → Settings → Deploy Hook
