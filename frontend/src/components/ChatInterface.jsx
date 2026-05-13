@@ -12,61 +12,206 @@ const WELCOME = {
   citations: [],
 }
 
-function buildChatHtml(messages) {
-  const rows = messages.slice(1).map(msg => {
+function mdToHtml(raw) {
+  const escaped = raw
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+
+  const lines = escaped.split('\n')
+  const out = []
+  let inUl = false, inOl = false, inPre = false
+
+  for (let i = 0; i < lines.length; i++) {
+    let l = lines[i]
+
+    // fenced code blocks
+    if (l.trim().startsWith('```')) {
+      if (!inPre) { out.push('<pre>'); inPre = true }
+      else         { out.push('</pre>'); inPre = false }
+      continue
+    }
+    if (inPre) { out.push(l + '\n'); continue }
+
+    // close lists on blank line
+    if (!l.trim()) {
+      if (inUl) { out.push('</ul>'); inUl = false }
+      if (inOl) { out.push('</ol>'); inOl = false }
+      out.push('<br/>')
+      continue
+    }
+
+    // headings
+    if (/^### /.test(l)) { out.push(`<h3>${l.slice(4)}</h3>`); continue }
+    if (/^## /.test(l))  { out.push(`<h2>${l.slice(3)}</h2>`); continue }
+    if (/^# /.test(l))   { out.push(`<h1>${l.slice(2)}</h1>`); continue }
+
+    // unordered list
+    if (/^[-*] /.test(l)) {
+      if (!inUl) { out.push('<ul>'); inUl = true }
+      l = `<li>${l.slice(2)}</li>`
+      out.push(inlineMd(l)); continue
+    }
+
+    // ordered list
+    if (/^\d+\. /.test(l)) {
+      if (!inOl) { out.push('<ol>'); inOl = true }
+      l = `<li>${l.replace(/^\d+\. /, '')}</li>`
+      out.push(inlineMd(l)); continue
+    }
+
+    // close open lists
+    if (inUl) { out.push('</ul>'); inUl = false }
+    if (inOl) { out.push('</ol>'); inOl = false }
+
+    out.push('<p>' + inlineMd(l) + '</p>')
+  }
+  if (inUl) out.push('</ul>')
+  if (inOl) out.push('</ol>')
+  return out.join('')
+}
+
+function inlineMd(s) {
+  return s
+    .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+    .replace(/\*\*(.+?)\*\*/g,     '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,         '<em>$1</em>')
+    .replace(/`([^`]+)`/g,         '<code>$1</code>')
+    .replace(/~~(.+?)~~/g,         '<del>$1</del>')
+}
+
+function buildChatHtml(messages, userName, userPhoto) {
+  const count = messages.length - 1
+  const date  = new Date().toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' })
+
+  const rows = messages.slice(1).map((msg) => {
     const isUser = msg.role === 'user'
-    const label = isUser ? 'You' : 'ASK Docs'
-    const bg = isUser ? '#f5f0f8' : '#ffffff'
-    const border = isUser ? '#ddd6fe' : '#e7e5e4'
-    const text = msg.content
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/`(.*?)`/g, '<code style="background:#f5f5f4;padding:1px 4px;border-radius:3px;font-size:11px">$1</code>')
-      .replace(/\n/g, '<br/>')
-    const citations = msg.citations?.length
-      ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid #e7e5e4">
-           ${msg.citations.map(c =>
-             `<div style="font-size:10px;color:#78716c;margin-bottom:2px">
-               &#128206; ${c.documentName}, Page ${c.pageNumber} &nbsp;·&nbsp; score ${c.score}
+
+    const avatar = isUser
+      ? (userPhoto
+          ? `<img src="${userPhoto}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid #f3e8f0"/>`
+          : `<div style="width:32px;height:32px;border-radius:50%;background:#8B004A;color:#fff;
+               display:flex;align-items:center;justify-content:center;font-size:13px;
+               font-weight:700;flex-shrink:0">${(userName || 'U')[0].toUpperCase()}</div>`)
+      : `<div style="width:32px;height:32px;border-radius:50%;background:#8B004A;color:#fff;
+           display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">✦</div>`
+
+    const name = isUser ? (userName || 'You') : 'ASK Docs'
+
+    const body = isUser
+      ? `<p style="margin:0;font-size:13px;line-height:1.65;color:#292524;white-space:pre-wrap">${msg.content.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</p>`
+      : mdToHtml(msg.content)
+
+    const citBlock = (!isUser && msg.citations?.length)
+      ? `<div style="margin-top:12px;padding-top:10px;border-top:1px dashed #e7d5e0">
+           <p style="margin:0 0 6px;font-size:9px;font-weight:700;color:#8B004A;
+             text-transform:uppercase;letter-spacing:.08em">Sources</p>
+           ${msg.citations.map((c, ci) => `
+             <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:4px">
+               <span style="min-width:16px;height:16px;border-radius:50%;background:#8B004A;
+                 color:#fff;font-size:8px;font-weight:700;display:inline-flex;
+                 align-items:center;justify-content:center">${ci+1}</span>
+               <span style="font-size:10px;color:#57534e">
+                 <strong style="color:#292524">${c.documentName}</strong>
+                 &nbsp;·&nbsp; Page ${c.pageNumber}
+                 &nbsp;·&nbsp; ${Math.round(c.score * 100)}% match
+               </span>
              </div>`).join('')}
          </div>`
       : ''
-    return `<div style="margin-bottom:14px;padding:12px 16px;background:${bg};
-              border:1px solid ${border};border-radius:10px">
-              <div style="font-size:9px;font-weight:700;color:#8B004A;
-                margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em">${label}</div>
-              <div style="font-size:12px;color:#292524;line-height:1.65">${text}</div>
-              ${citations}
-            </div>`
+
+    return `
+      <div style="display:flex;gap:12px;margin-bottom:20px;align-items:flex-start;
+        ${isUser ? 'flex-direction:row-reverse' : ''}">
+        ${avatar}
+        <div style="flex:1;max-width:88%">
+          <p style="margin:0 0 5px;font-size:10px;font-weight:700;color:#8B004A;
+            text-transform:uppercase;letter-spacing:.07em;
+            ${isUser ? 'text-align:right' : ''}">${name}</p>
+          <div style="padding:12px 16px;border-radius:${isUser ? '16px 4px 16px 16px' : '4px 16px 16px 16px'};
+            background:${isUser ? '#f9f0f5' : '#ffffff'};
+            border:1px solid ${isUser ? '#e8d0e0' : '#e7e5e4'};
+            box-shadow:0 1px 3px rgba(0,0,0,.06)">
+            <div class="md">${body}</div>
+            ${citBlock}
+          </div>
+        </div>
+      </div>`
   }).join('')
 
-  const count = messages.length - 1
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"/>
-    <title>ASK Docs Chat — ${new Date().toLocaleDateString()}</title>
-    <style>
-      body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-           padding:36px;max-width:780px;margin:0 auto;color:#1c1917}
-      @media print{body{padding:20px}}
-    </style>
-  </head><body>
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
-      <div style="width:28px;height:28px;border-radius:8px;background:#8B004A;
-        display:flex;align-items:center;justify-content:center;color:white;font-size:14px">✦</div>
-      <span style="font-size:18px;font-weight:700;color:#8B004A">ASK Docs</span>
+  return `<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8"/>
+  <title>ASK Docs — Chat Export</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+         background:#f2efe7;color:#1c1917;padding:0}
+    .page{max-width:760px;margin:0 auto;background:#fff;min-height:100vh;
+          box-shadow:0 0 40px rgba(0,0,0,.08)}
+    .header{background:linear-gradient(135deg,#8B004A 0%,#b5196b 100%);
+            padding:28px 36px;color:#fff}
+    .header-top{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+    .logo{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.2);
+          display:flex;align-items:center;justify-content:center;font-size:18px}
+    .header h1{font-size:22px;font-weight:700;letter-spacing:-.3px}
+    .header-meta{display:flex;gap:20px;font-size:11px;opacity:.75}
+    .header-meta span{display:flex;align-items:center;gap:4px}
+    .body{padding:28px 36px}
+    .md h1{font-size:16px;font-weight:700;color:#8B004A;margin:10px 0 4px}
+    .md h2{font-size:14px;font-weight:700;color:#8B004A;margin:8px 0 4px}
+    .md h3{font-size:13px;font-weight:600;color:#57384d;margin:6px 0 3px}
+    .md p{font-size:12.5px;line-height:1.7;color:#292524;margin-bottom:6px}
+    .md ul,.md ol{padding-left:18px;margin-bottom:8px}
+    .md li{font-size:12.5px;line-height:1.6;color:#292524;margin-bottom:2px}
+    .md strong{font-weight:700;color:#1c1917}
+    .md em{font-style:italic;color:#57534e}
+    .md code{background:#fdf4f7;color:#8B004A;padding:1px 5px;border-radius:4px;
+             font-size:11px;font-family:'Courier New',monospace;border:1px solid #f3dce8}
+    .md pre{background:#1a0a10;color:#f2efe7;padding:14px 16px;border-radius:10px;
+            font-size:11px;font-family:'Courier New',monospace;overflow:auto;
+            margin:8px 0;line-height:1.6;white-space:pre-wrap;word-break:break-word}
+    .md del{text-decoration:line-through;color:#a8a29e}
+    .footer{padding:16px 36px;background:#faf8f6;border-top:1px solid #f0ece6;
+            text-align:center;font-size:10px;color:#a8a29e}
+    @media print{
+      body{background:#fff}
+      .page{box-shadow:none;max-width:100%}
+      .header{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="header">
+      <div class="header-top">
+        <div class="logo">✦</div>
+        <div>
+          <h1>ASK Docs</h1>
+          <p style="font-size:11px;opacity:.7;margin-top:1px">AI Document Assistant</p>
+        </div>
+      </div>
+      <div class="header-meta">
+        <span>📅 ${date}</span>
+        <span>💬 ${count} message${count !== 1 ? 's' : ''}</span>
+        ${userName ? `<span>👤 ${userName}</span>` : ''}
+      </div>
     </div>
-    <p style="font-size:11px;color:#a8a29e;margin-bottom:28px">
-      Chat exported on ${new Date().toLocaleString()} &nbsp;·&nbsp; ${count} message${count !== 1 ? 's' : ''}
-    </p>
-    ${rows}
-    <p style="margin-top:32px;font-size:10px;color:#d6d3d1;text-align:center;border-top:1px solid #f5f5f4;padding-top:16px">
-      Generated by ASK Docs · askdocs.app
-    </p>
-  </body></html>`
+
+    <div class="body">
+      ${rows}
+    </div>
+
+    <div class="footer">
+      Generated by ASK Docs &nbsp;·&nbsp; AI-powered document intelligence
+    </div>
+  </div>
+</body></html>`
 }
 
 export default function ChatInterface() {
   const toast = useToast()
+  const { user } = useAuth()
   const [messages, setMessages] = useState([WELCOME])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -77,11 +222,13 @@ export default function ChatInterface() {
     if (messages.length <= 1) { toast.error('No chat to export yet.'); return }
     const win = window.open('', '_blank')
     if (!win) { toast.error('Allow pop-ups to download the chat PDF.'); return }
+    const userName  = user?.firebaseUser?.displayName  || ''
+    const userPhoto = user?.firebaseUser?.photoURL     || ''
     win.document.open()
-    win.document.write(buildChatHtml(messages))  // eslint-disable-line no-restricted-globals
+    win.document.write(buildChatHtml(messages, userName, userPhoto))
     win.document.close()
     win.focus()
-    setTimeout(() => { win.print(); win.close() }, 400)
+    setTimeout(() => { win.print(); win.close() }, 500)
   }
 
   useEffect(() => {
