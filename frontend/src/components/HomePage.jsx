@@ -8,6 +8,14 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false)
 
   const handleSignIn = async () => {
+    // HF Spaces embeds the app in a sandboxed iframe that blocks Firebase popup
+    // postMessage. Open the direct app URL in a new tab instead — same origin,
+    // so auth state persists back to the embedded view automatically.
+    if (window.self !== window.top) {
+      window.open('https://aditya-raj19-askdocs.hf.space', '_blank')
+      toast.success('Sign in on the new tab that just opened, then come back here.')
+      return
+    }
     setLoading(true)
     try { await login() }
     catch (err) {
