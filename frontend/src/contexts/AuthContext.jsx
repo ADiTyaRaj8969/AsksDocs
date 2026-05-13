@@ -1,7 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import {
   signInWithPopup,
-  signInWithRedirect,
   getRedirectResult,
   signOut,
   onAuthStateChanged,
@@ -53,16 +52,8 @@ export function AuthProvider({ children }) {
   }, [])
 
   const login = useCallback(async () => {
-    // signInWithPopup fails silently inside iframes (e.g. HF Spaces) because the
-    // popup can't postMessage back to an embedded frame. Use redirect in that case.
-    const inIframe = window.self !== window.top
-    if (inIframe) {
-      await signInWithRedirect(auth, googleProvider)
-      // onAuthStateChanged will fire after the redirect returns
-    } else {
-      await signInWithPopup(auth, googleProvider)
-      localStorage.setItem(SIGNIN_TIME_KEY, String(Date.now()))
-    }
+    await signInWithPopup(auth, googleProvider)
+    localStorage.setItem(SIGNIN_TIME_KEY, String(Date.now()))
   }, [])
 
   const logout = useCallback(async () => {
