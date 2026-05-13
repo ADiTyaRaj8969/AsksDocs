@@ -81,13 +81,7 @@ export function deleteDocumentChunks(documentName) {
 
 export function listDocuments() {
   const store = getStore()
-  // Build stats in one pass — no second file read
-  const map = new Map()
-  for (const c of store) {
-    if (!map.has(c.documentName)) map.set(c.documentName, 0)
-    map.set(c.documentName, map.get(c.documentName) + 1)
-  }
-  return [...map.entries()].map(([name, chunks]) => ({ name, chunks, size: 0 }))
+  return [...new Set(store.map(c => c.documentName))]
 }
 
 export function getDocumentStats(documentName) {
