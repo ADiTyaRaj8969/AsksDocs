@@ -3,14 +3,14 @@ FROM node:20-alpine AS frontend-build
 
 WORKDIR /app/frontend
 
-# Firebase config must be baked in at build time by Vite (import.meta.env.VITE_*)
-# These ARGs are populated from HF Space secrets at image build time
-ARG VITE_FIREBASE_API_KEY
-ARG VITE_FIREBASE_AUTH_DOMAIN
-ARG VITE_FIREBASE_PROJECT_ID
-ARG VITE_FIREBASE_STORAGE_BUCKET
-ARG VITE_FIREBASE_MESSAGING_SENDER_ID
-ARG VITE_FIREBASE_APP_ID
+# Firebase frontend config — these are intentionally public (baked into every user's JS bundle).
+# Defaults are set here so the build works without any external build args.
+ARG VITE_FIREBASE_API_KEY=AIzaSyAetCxgaGLfplSt8zQuG5Rq1Tu6WGhAk20
+ARG VITE_FIREBASE_AUTH_DOMAIN=asks-docs.firebaseapp.com
+ARG VITE_FIREBASE_PROJECT_ID=asks-docs
+ARG VITE_FIREBASE_STORAGE_BUCKET=asks-docs.firebasestorage.app
+ARG VITE_FIREBASE_MESSAGING_SENDER_ID=378230753937
+ARG VITE_FIREBASE_APP_ID=1:378230753937:web:f54af6a045ebef61c0cd30
 
 ENV VITE_FIREBASE_API_KEY=$VITE_FIREBASE_API_KEY
 ENV VITE_FIREBASE_AUTH_DOMAIN=$VITE_FIREBASE_AUTH_DOMAIN
