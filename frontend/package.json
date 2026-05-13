@@ -12,6 +12,7 @@
     "@react-oauth/google": "^0.13.5",
     "@tailwindcss/typography": "^0.5.19",
     "axios": "^1.7.2",
+    "firebase": "^12.13.0",
     "mammoth": "^1.12.0",
     "pdfjs-dist": "^5.7.284",
     "react": "^18.3.1",

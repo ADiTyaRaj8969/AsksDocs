@@ -1,27 +1,25 @@
 import axios from 'axios'
+import { auth } from '../lib/firebase'
 
 const api = axios.create({ baseURL: '/api' })
 
-// Attach the Firebase / Google ID token on every request
-api.interceptors.request.use((config) => {
-  try {
-    const stored = sessionStorage.getItem('askdocs_user')
-    if (stored) {
-      const { token } = JSON.parse(stored)
-      if (token) config.headers.Authorization = `Bearer ${token}`
-    }
-  } catch {
-    // ignore parse errors
+// Attach a fresh Firebase ID token on every request (auto-refreshes when expired)
+api.interceptors.request.use(async (config) => {
+  const user = auth.currentUser
+  if (user) {
+    const token = await user.getIdToken()
+    config.headers.Authorization = `Bearer ${token}`
   }
   return config
 })
 
-// Redirect to login on 401
+// On 401 the token is invalid — sign out and reload to show login screen
 api.interceptors.response.use(
   (res) => res,
-  (err) => {
+  async (err) => {
     if (err.response?.status === 401) {
-      sessionStorage.removeItem('askdocs_user')
+      const { signOut } = await import('firebase/auth')
+      await signOut(auth)
       window.location.reload()
     }
     return Promise.reject(err)
@@ -31,9 +29,6 @@ api.interceptors.response.use(
 /**
  * Upload a document by sending only the text chunks extracted in the browser.
  * The original file never leaves the device.
- *
- * @param {string} documentName
- * @param {{ text: string, pageNumber: number }[]} chunks
  */
 export async function uploadChunks(documentName, chunks) {
   const { data } = await api.post('/upload', { documentName, chunks })

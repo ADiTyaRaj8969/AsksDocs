@@ -53,16 +53,16 @@ export default function App() {
 
               {/* User avatar + logout */}
               <div className="flex items-center gap-2 pl-2 border-l border-white/[0.08]">
-                {user.picture
-                  ? <img src={user.picture} alt={user.name}
-                      className="w-7 h-7 rounded-full ring-1 ring-violet-500/40" />
+                {user.firebaseUser.photoURL
+                  ? <img src={user.firebaseUser.photoURL} alt={user.firebaseUser.displayName}
+                      className="w-7 h-7 rounded-full ring-1 ring-violet-500/40" referrerPolicy="no-referrer" />
                   : <div className="w-7 h-7 rounded-full bg-violet-700 flex items-center justify-center
                       text-xs font-semibold text-white">
-                      {user.name?.[0] ?? '?'}
+                      {user.firebaseUser.displayName?.[0] ?? '?'}
                     </div>
                 }
                 <span className="hidden sm:block text-xs text-gray-400 max-w-[120px] truncate">
-                  {user.name}
+                  {user.firebaseUser.displayName}
                 </span>
                 <button
                   onClick={logout}

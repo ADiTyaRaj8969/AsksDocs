@@ -8,7 +8,7 @@ export default defineConfig({
     strictPort: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        target: 'http://localhost:8000',
         changeOrigin: true,
       },
     },
@@ -16,5 +16,16 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
+    chunkSizeWarningLimit: 700,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          firebase:  ['firebase/app', 'firebase/auth'],
+          pdfjs:     ['pdfjs-dist'],
+          xlsx:      ['xlsx'],
+          react:     ['react', 'react-dom'],
+        },
+      },
+    },
   },
 })
