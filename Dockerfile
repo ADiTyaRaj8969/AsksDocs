@@ -51,6 +51,7 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
 ENV NODE_ENV=production
 ENV PORT=7860
 ENV DATA_DIR=/app/server/data
+ENV FIREBASE_PROJECT_ID=asks-docs
 # Increase heap for embedding large documents in production
 ENV NODE_OPTIONS=--max-old-space-size=512
 
