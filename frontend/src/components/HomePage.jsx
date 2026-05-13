@@ -78,7 +78,7 @@ export default function HomePage() {
           <div className="flex flex-wrap justify-center gap-3">
             <button onClick={handleSignIn} disabled={loading}
               className="group flex items-center gap-2 px-6 py-3.5 rounded-xl bg-brand text-white
-                font-semibold text-sm shadow-brand hover:shadow-brand-lg active:scale-[0.98]
+                font-semibold text-sm active:scale-[0.98] hover:bg-brand-700
                 disabled:opacity-60 disabled:pointer-events-none transition-all duration-200">
               {loading
                 ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"/>
