@@ -4,6 +4,7 @@ import remarkGfm from 'remark-gfm'
 import { queryDocuments } from '../api/api'
 import CitationPanel from './CitationPanel'
 import { useToast } from './Toast'
+import { useAuth } from '../contexts/AuthContext'
 
 const WELCOME = {
   role: 'assistant',
@@ -257,14 +258,29 @@ const AssistantAvatar = () => (
   </div>
 )
 
-const UserAvatar = () => (
-  <div className="w-7 h-7 rounded-xl bg-stone-200 flex items-center justify-center
-    shrink-0 mt-0.5">
-    <svg className="w-4 h-4 text-stone-500" fill="currentColor" viewBox="0 0 20 20">
-      <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"/>
-    </svg>
-  </div>
-)
+const UserAvatar = () => {
+  const { user } = useAuth()
+  const photoURL = user?.firebaseUser?.photoURL
+  const displayName = user?.firebaseUser?.displayName
+
+  if (photoURL) {
+    return (
+      <img src={photoURL} alt={displayName || 'You'} referrerPolicy="no-referrer"
+        className="w-7 h-7 rounded-xl object-cover shrink-0 mt-0.5 ring-2 ring-brand/20" />
+    )
+  }
+
+  return (
+    <div className="w-7 h-7 rounded-xl bg-brand/20 flex items-center justify-center shrink-0 mt-0.5">
+      {displayName
+        ? <span className="text-[11px] font-bold text-brand">{displayName[0].toUpperCase()}</span>
+        : <svg className="w-4 h-4 text-stone-500" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"/>
+          </svg>
+      }
+    </div>
+  )
+}
 
 const SendIcon = () => (
   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
