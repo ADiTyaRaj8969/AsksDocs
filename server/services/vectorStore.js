@@ -53,14 +53,14 @@ function cosineSimilarity(a, b) {
 
 // ── Public API ───────────────────────────────────────────────────────────────
 
-export function storeChunks(chunks) {
+export function storeChunks(chunks, userId) {
   const store = getStore()
-  store.push(...chunks)
+  store.push(...chunks.map(c => ({ ...c, userId })))
   persist()
 }
 
-export function searchSimilar(queryEmbedding, topK = 5) {
-  const store = getStore()
+export function searchSimilar(queryEmbedding, userId, topK = 5) {
+  const store = getStore().filter(c => c.userId === userId)
   if (!store.length) return []
 
   const scored = store.map((c) => ({
@@ -74,17 +74,17 @@ export function searchSimilar(queryEmbedding, topK = 5) {
   return scored.slice(0, topK)
 }
 
-export function deleteDocumentChunks(documentName) {
-  _store = getStore().filter((c) => c.documentName !== documentName)
+export function deleteDocumentChunks(documentName, userId) {
+  _store = getStore().filter(c => !(c.documentName === documentName && c.userId === userId))
   persist()
 }
 
-export function listDocuments() {
-  const store = getStore()
+export function listDocuments(userId) {
+  const store = getStore().filter(c => c.userId === userId)
   return [...new Set(store.map(c => c.documentName))]
 }
 
-export function getDocumentStats(documentName) {
-  const count = getStore().filter((c) => c.documentName === documentName).length
+export function getDocumentStats(documentName, userId) {
+  const count = getStore().filter(c => c.documentName === documentName && c.userId === userId).length
   return { chunks: count }
 }

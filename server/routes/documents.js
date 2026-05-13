@@ -12,15 +12,14 @@ const UPLOAD_DIR = process.env.DATA_DIR
 const router = express.Router()
 
 // GET /api/documents
-router.get('/documents', (_req, res) => {
-  const docs = listDocuments()
+router.get('/documents', (req, res) => {
+  const userId = req.user.uid
+  const docs = listDocuments(userId)
   const documents = docs.map((name) => {
-    const stats = getDocumentStats(name)
+    const stats = getDocumentStats(name, userId)
     const filePath = path.join(UPLOAD_DIR, name)
     let size = 0
-    try {
-      size = fs.statSync(filePath).size
-    } catch {}
+    try { size = fs.statSync(filePath).size } catch {}
     return { name, chunks: stats.chunks, size }
   })
   res.json({ documents })
@@ -29,16 +28,9 @@ router.get('/documents', (_req, res) => {
 // DELETE /api/documents/:name
 router.delete('/documents/:name', (req, res) => {
   const documentName = decodeURIComponent(req.params.name)
-
-  // Remove from vector store
-  deleteDocumentChunks(documentName)
-
-  // Remove from disk
+  deleteDocumentChunks(documentName, req.user.uid)
   const filePath = path.join(UPLOAD_DIR, documentName)
-  if (fs.existsSync(filePath)) {
-    fs.unlinkSync(filePath)
-  }
-
+  if (fs.existsSync(filePath)) fs.unlinkSync(filePath)
   res.json({ message: `Document '${documentName}' deleted successfully.` })
 })
 

@@ -17,8 +17,8 @@ router.post('/query', async (req, res) => {
     // 1. Embed the query
     const queryEmbedding = await getQueryEmbedding(question.trim())
 
-    // 2. Retrieve top-k similar chunks
-    const similarChunks = searchSimilar(queryEmbedding, top_k)
+    // 2. Retrieve top-k similar chunks scoped to this user
+    const similarChunks = searchSimilar(queryEmbedding, req.user.uid, top_k)
 
     if (!similarChunks.length) {
       return res.json({

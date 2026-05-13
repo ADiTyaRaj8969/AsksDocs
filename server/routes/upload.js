@@ -43,8 +43,10 @@ router.post('/upload', async (req, res) => {
   const safeName = documentName.trim().replace(/[/\\]/g, '_').slice(0, 255)
 
   try {
+    const userId = req.user.uid
+
     // Remove stale data if the document is being re-uploaded
-    deleteDocumentChunks(safeName)
+    deleteDocumentChunks(safeName, userId)
 
     // Embed all chunks (sequential to respect Gemini rate limits)
     const texts = chunks.map((c) => c.text)
@@ -58,7 +60,7 @@ router.post('/upload', async (req, res) => {
       embedding:    embeddings[i],
     }))
 
-    storeChunks(chunksWithEmbeddings)
+    storeChunks(chunksWithEmbeddings, userId)
 
     res.json({
       message:      'Document processed successfully.',
