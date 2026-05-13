@@ -34,9 +34,10 @@ router.delete('/documents', (req, res) => {
 // DELETE /api/documents/:name
 router.delete('/documents/:name', (req, res) => {
   const documentName = decodeURIComponent(req.params.name)
+    .trim().replace(/[/\\]/g, '_').slice(0, 255)
   deleteDocumentChunks(documentName, req.user.uid)
   const filePath = path.join(UPLOAD_DIR, documentName)
-  if (fs.existsSync(filePath)) fs.unlinkSync(filePath)
+  try { if (fs.existsSync(filePath)) fs.unlinkSync(filePath) } catch {}
   res.json({ message: `Document '${documentName}' deleted successfully.` })
 })
 

@@ -39,7 +39,7 @@ COPY --from=frontend-build /app/frontend/dist ./frontend/dist
 
 RUN mkdir -p server/uploads server/vector_db server/data/uploads
 
-RUN chown -R 1000:1000 /app && chmod -R 777 /app/server/data /app/server/uploads /app/server/vector_db
+RUN chown -R 1000:1000 /app && chmod -R 755 /app/server/data /app/server/uploads /app/server/vector_db
 
 USER 1000
 

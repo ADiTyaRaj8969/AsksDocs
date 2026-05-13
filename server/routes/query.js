@@ -7,7 +7,8 @@ const router = express.Router()
 
 // POST /api/query
 router.post('/query', async (req, res) => {
-  const { question, top_k = 5 } = req.body
+  const { question } = req.body
+  const top_k = Math.min(Math.max(parseInt(req.body.top_k, 10) || 5, 1), 20)
 
   if (!question?.trim()) {
     return res.status(400).json({ error: 'Question cannot be empty.' })

@@ -184,7 +184,7 @@ export default function HomePage() {
               { icon: <ShieldIcon/>, title: 'Google Authentication', desc: 'Secure OAuth 2.0 sign-in. No passwords stored.' },
               { icon: <LockIcon/>,   title: 'Browser Extraction', desc: 'Your file is never uploaded. Text extracted locally.' },
               { icon: <VaultIcon/>,  title: 'Private Vectors', desc: 'Each session uses isolated vector storage.' },
-              { icon: <TimerIcon/>,  title: 'Temporary Sessions', desc: 'Documents cleared automatically. 10-day auth window.' },
+              { icon: <TimerIcon/>,  title: 'Temporary Sessions', desc: 'Uploaded text chunks are auto-deleted when you close the tab.' },
             ].map(({ icon, title, desc }) => (
               <div key={title}
                 className="rounded-2xl p-6 space-y-3 border border-stone-200/80

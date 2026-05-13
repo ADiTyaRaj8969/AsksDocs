@@ -100,7 +100,7 @@ export default function FileUpload({ onUploaded }) {
                 ))}
               </div>
               <p className="text-[10px] text-emerald-600 flex items-center gap-1 font-medium">
-                <LockIcon /> File processed in browser — never uploaded
+                <LockIcon /> Original file stays on your device — only text is sent
               </p>
             </>
           )}
