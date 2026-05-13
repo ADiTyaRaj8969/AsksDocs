@@ -31,11 +31,13 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          # Placeholder values so the build succeeds in CI without real keys
-          VITE_GOOGLE_CLIENT_ID: ci_placeholder
-          VITE_FIREBASE_API_KEY: ci_placeholder
-          VITE_FIREBASE_AUTH_DOMAIN: ci_placeholder
-          VITE_FIREBASE_PROJECT_ID: ci_placeholder
+          # Use real secrets from GitHub → Settings → Secrets and variables → Actions
+          VITE_FIREBASE_API_KEY:            ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN:        ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID:         ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET:     ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID:             ${{ secrets.VITE_FIREBASE_APP_ID }}
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
