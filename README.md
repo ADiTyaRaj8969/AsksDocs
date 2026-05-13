@@ -1,3 +1,12 @@
+---
+title: ASK Docs
+emoji: 📄
+colorFrom: purple
+colorTo: pink
+sdk: docker
+pinned: false
+---
+
 # AskDocs — Intelligent Document Query System
 
 ![AskDocs Banner](https://img.shields.io/badge/AskDocs-Intelligent_Document_Assistant-6366f1?style=for-the-badge&logo=google-gemini&logoColor=white)
