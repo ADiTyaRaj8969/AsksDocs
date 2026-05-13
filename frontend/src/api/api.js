@@ -13,11 +13,20 @@ api.interceptors.request.use(async (config) => {
   return config
 })
 
-// On 401 the token is invalid — sign out and reload to show login screen
+// On 401 try once with a force-refreshed token; only sign out if it fails again
 api.interceptors.response.use(
   (res) => res,
   async (err) => {
-    if (err.response?.status === 401) {
+    if (err.response?.status === 401 && !err.config._retry) {
+      err.config._retry = true
+      const user = auth.currentUser
+      if (user) {
+        try {
+          const fresh = await user.getIdToken(true)
+          err.config.headers = { ...err.config.headers, Authorization: `Bearer ${fresh}` }
+          return api(err.config)
+        } catch { /* fall through to sign out */ }
+      }
       const { signOut } = await import('firebase/auth')
       await signOut(auth)
       window.location.reload()
