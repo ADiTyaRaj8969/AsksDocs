@@ -26,4 +26,6 @@ Thumbs.db
 # Logs
 *.log
 npm-debug.log*
-docs/
+
+# docs/ is committed to GitHub for README diagrams.
+# Excluded from HF Space push via orphan-branch unstage (see deploy notes).
