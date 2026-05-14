@@ -30,7 +30,8 @@ app.use((_req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff')
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
   res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
-  res.setHeader('X-Frame-Options', 'SAMEORIGIN')
+  // frame-ancestors allows the app to be embedded in HF Spaces' iframe wrapper.
+  // It supersedes X-Frame-Options in modern browsers, so we don't set XFO.
   res.setHeader('Content-Security-Policy', [
     "default-src 'self'",
     "script-src 'self' https://apis.google.com https://www.gstatic.com",
@@ -39,6 +40,7 @@ app.use((_req, res, next) => {
     "img-src 'self' data: blob: https:",
     "connect-src 'self' https://*.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseinstallations.googleapis.com",
     "frame-src https://accounts.google.com https://*.firebaseapp.com",
+    "frame-ancestors 'self' https://huggingface.co https://*.hf.space",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",

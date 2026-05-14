@@ -135,9 +135,10 @@ export default function DocumentList({ refreshSignal, onDocumentSelect }) {
             <button onClick={e => { e.stopPropagation(); handleDelete(doc.name) }}
               disabled={isDeleting}
               className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center
-                transition-all duration-150 opacity-0 group-hover:opacity-100
+                transition-all duration-150
+                opacity-100 lg:opacity-0 lg:group-hover:opacity-100
                 ${isConfirm
-                  ? 'bg-red-50 text-red-500 border border-red-200 opacity-100'
+                  ? 'bg-red-50 text-red-500 border border-red-200 lg:opacity-100'
                   : 'hover:bg-red-50 text-stone-400 hover:text-red-500 border border-transparent hover:border-red-200'}`}
               title={isConfirm ? 'Click again to confirm delete' : 'Delete document'}>
               {isConfirm ? <ConfirmIcon /> : <TrashIcon />}

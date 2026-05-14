@@ -10,7 +10,11 @@ import { clearAllDocuments } from './api/api'
 export default function App() {
   const { user, ready, logout } = useAuth()
   const [refreshSignal, setRefreshSignal] = useState(0)
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  // Default: open on desktop, closed on mobile so chat is visible
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    if (typeof window === 'undefined') return true
+    return window.matchMedia('(min-width: 1024px)').matches
+  })
 
   // Clear all uploaded documents at the start of every new browser session.
   // sessionStorage resets when the tab is closed, so this runs once per tab open.
@@ -26,7 +30,11 @@ export default function App() {
   if (!ready) return null
   if (!user)  return <><ToastContainer /><HomePage /></>
 
-  const handleUploaded = () => setRefreshSignal((s) => s + 1)
+  const isMobile = () => window.matchMedia('(max-width: 1023px)').matches
+  const handleUploaded = () => {
+    setRefreshSignal((s) => s + 1)
+    if (isMobile()) setSidebarOpen(false)   // jump to chat after upload on mobile
+  }
 
   return (
     <>
@@ -81,15 +89,25 @@ export default function App() {
         </header>
 
         {/* ── Body ──────────────────────────────────────────────────────── */}
-        <div className="flex-1 max-w-[1600px] mx-auto w-full flex overflow-hidden"
-          style={{ height: 'calc(100vh - 56px)' }}>
+        <div className="flex-1 max-w-[1600px] mx-auto w-full flex overflow-hidden relative"
+          style={{ height: 'calc(100dvh - 56px)' }}>
+
+          {/* Mobile backdrop — tap to dismiss sidebar */}
+          {sidebarOpen && (
+            <div onClick={() => setSidebarOpen(false)}
+              className="lg:hidden fixed inset-0 top-14 bg-black/40 backdrop-blur-sm z-30" />
+          )}
 
           {/* ── Sidebar ───────────────────────────────────────────────── */}
-          <aside className={`shrink-0 flex flex-col bg-white/60 border-r border-stone-200/80
-            overflow-y-auto transition-all duration-300
-            ${sidebarOpen ? 'w-72 opacity-100' : 'w-0 opacity-0 overflow-hidden pointer-events-none'}
-            lg:opacity-100 lg:pointer-events-auto
-            ${sidebarOpen ? 'lg:w-72' : 'lg:w-0 lg:overflow-hidden'}`}>
+          <aside className={`
+            fixed lg:static top-14 lg:top-auto bottom-0 lg:bottom-auto left-0
+            w-72 z-40 lg:z-auto shrink-0
+            flex flex-col bg-white lg:bg-white/60 border-r border-stone-200/80
+            overflow-y-auto shadow-2xl lg:shadow-none
+            transition-transform duration-300 ease-out lg:transition-all
+            ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+            ${sidebarOpen ? 'lg:w-72' : 'lg:w-0 lg:overflow-hidden'}
+          `}>
 
             <div className="p-4 space-y-5 w-72">
 
