@@ -1,12 +1,3 @@
----
-title: ASK Docs
-emoji: 📄
-colorFrom: purple
-colorTo: pink
-sdk: docker
-pinned: false
----
-
 <div align="center">
 
 <br />
@@ -94,24 +85,47 @@ flowchart LR
 
 ## The pipelines
 
-<table>
-<tr>
-<td width="50%" valign="top" align="center">
+#### Upload pipeline
 
-#### Upload
+```mermaid
+flowchart TD
+  A([User selects file]) --> B{Format allowed?<br/>PDF · DOCX · XLSX · PNG · JPG}
+  B -- no --> X[/HTTP 400 — rejected/]
+  B -- yes --> C[Extract text<br/>in browser]
+  C --> D{Less than<br/>100 chars extracted?}
+  D -- yes, scanned --> E[Tesseract OCR<br/>browser-side]
+  D -- no --> F
+  E --> F[Sliding-window chunking<br/>500 words · 100 overlap]
+  F --> G[Gemini embedding-001<br/>5 chunks in parallel]
+  G --> H[Atomic store<br/>scoped by userId]
+  H --> I([Return chunksCreated])
 
-<img src="https://raw.githubusercontent.com/ADiTyaRaj8969/AsksDocs/main/docs/upload_flow.png" alt="Upload pipeline" />
+  style A fill:#8B004A,stroke:#8B004A,color:#fff
+  style I fill:#10B981,stroke:#10B981,color:#fff
+  style X fill:#EF4444,stroke:#EF4444,color:#fff
+  style E fill:#F59E0B,stroke:#F59E0B,color:#fff
+```
 
-</td>
-<td width="50%" valign="top" align="center">
+#### Query pipeline
 
-#### Query
+```mermaid
+flowchart TD
+  A([User submits question]) --> B{Non-empty<br/>and ≤ 2000 chars?}
+  B -- no --> X[/HTTP 400 — rejected/]
+  B -- yes --> C[Embed query<br/>RETRIEVAL_QUERY task]
+  C --> D[Cosine top-K<br/>scoped by userId · k clamped 1-20]
+  D --> E{Any relevant<br/>chunks?}
+  E -- no --> Y[/Empty-state answer/]
+  E -- yes --> F[Build grounded prompt<br/>===BEGIN CONTEXT=== fenced]
+  F --> G[Gemini 2.5 Flash<br/>60-second timeout]
+  G --> H[Deduplicate citations<br/>by document + page]
+  H --> I([Return answer + citations])
 
-<img src="https://raw.githubusercontent.com/ADiTyaRaj8969/AsksDocs/main/docs/query_flow.png" alt="Query pipeline" />
-
-</td>
-</tr>
-</table>
+  style A fill:#8B004A,stroke:#8B004A,color:#fff
+  style I fill:#10B981,stroke:#10B981,color:#fff
+  style X fill:#EF4444,stroke:#EF4444,color:#fff
+  style Y fill:#6B7280,stroke:#6B7280,color:#fff
+```
 
 <br />
 
