@@ -7,160 +7,241 @@ sdk: docker
 pinned: false
 ---
 
-# AskDocs — Intelligent Document Query System
+# ASK Docs
 
-![AskDocs Banner](https://img.shields.io/badge/AskDocs-Intelligent_Document_Assistant-6366f1?style=for-the-badge&logo=google-gemini&logoColor=white)
+**Upload a document. Ask anything. Get cited answers grounded in the source.**
 
-> **Privacy-First RAG-based IDP** · React · FastAPI · Express.js · ChromaDB · Google Gemini 2.5 Flash
+[![Live demo](https://img.shields.io/badge/live_demo-aditya--raj19--askdocs.hf.space-8B004A?style=for-the-badge)](https://aditya-raj19-askdocs.hf.space/)
 
----
-
-## 📖 What is AskDocs?
-
-AskDocs is a modern, privacy-first **Intelligent Document Processing (IDP)** system built on **Retrieval-Augmented Generation (RAG)** architecture. Traditional Large Language Models (LLMs) often suffer from "hallucinations" because they rely solely on their pre-trained generalized knowledge. AskDocs solves this by restricting the AI's knowledge base strictly to the documents you provide.
-
-It allows users to upload various documents—PDFs, Word files, Excel spreadsheets, or even raw images—and ask natural-language questions about their content. The system then searches your specific documents, retrieves the most highly relevant text snippets, and passes *only* those snippets to **Google Gemini 2.5 Flash** to generate a concise, accurate answer complete with **inline source citations**.
-
-**Privacy First**: Document parsing, text extraction, and vectorization happen entirely on your local server. Only the small, specific retrieved text chunks are sent to the Gemini API for the final answer generation, ensuring your entire document corpus remains private.
-
----
-
-## ✨ Key Features in Depth
-
-- **Multi-Format Ingestion**: Seamlessly supports and parses PDF, DOCX, XLSX/XLS, PNG, JPG, and JPEG files using specialized extraction libraries tailored to each format.
-- **Advanced OCR Fallback**: If a user uploads a scanned PDF or a raw image without a selectable text layer, AskDocs intelligently falls back to OCR (Optical Character Recognition). Depending on the active backend, it utilizes the advanced multimodal capabilities of Gemini Vision or the robust `tesseract.js` engine to visually read and extract the text.
-- **Smart Chunking Strategy**: Documents are not processed as single massive blocks. The system employs a sliding-window chunking algorithm (typically 500 words with a 100-word overlap). The overlap is critical: it prevents sentences or paragraphs from being cut in half across chunk boundaries, ensuring the semantic context is never lost during vector search.
-- **Grounded Answers with Citations**: To guarantee accuracy, answers are exclusively generated from the uploaded documents. The system forces the LLM to explicitly cite the source document name and the exact page number (e.g., `*(Source: financial_report.pdf, Page 12)*`), making every claim fully verifiable.
-- **Modern & Responsive UI**: A sleek React Single Page Application (SPA) built with Vite and Tailwind CSS. It features intuitive drag-and-drop file uploads, real-time visual progress tracking via Toast notifications, responsive mobile-friendly sidebars, and a beautiful dark-themed interface.
-- **Dual Backend Architecture**: Built for both local experimentation and scalable cloud production. It features a high-performance Python backend (FastAPI + ChromaDB) for advanced local vector search, alongside a lightweight Node.js backend (Express.js + Local JSON DB) optimized for zero-dependency cloud deployments.
+![Node](https://img.shields.io/badge/Node-20-339933?logo=node.js&logoColor=white)
+![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)
+![Vite](https://img.shields.io/badge/Vite-5-646CFF?logo=vite&logoColor=white)
+![Tailwind](https://img.shields.io/badge/Tailwind-3-06B6D4?logo=tailwindcss&logoColor=white)
+![Gemini](https://img.shields.io/badge/Gemini-2.5_Flash-4285F4?logo=google&logoColor=white)
+![Firebase](https://img.shields.io/badge/Firebase-Auth-FFCA28?logo=firebase&logoColor=black)
+![Docker](https://img.shields.io/badge/Docker-multi--stage-2496ED?logo=docker&logoColor=white)
+![License](https://img.shields.io/badge/license-MIT-green)
 
 ---
 
-## 🛠️ Comprehensive Tech Stack
+## What is this
 
-This project is built with maximum flexibility, offering two distinct backend implementations depending on your deployment needs.
+ASK Docs is a privacy-first **Retrieval-Augmented Generation (RAG)** app. Sign in with Google, upload a PDF / DOCX / XLSX / image, and chat with it. Every answer is grounded in your document and references the exact filename and page it came from — so you can verify the source instead of trusting the model.
 
-### 1. Frontend Client
-- **Framework**: React 18 & Vite
-- **Styling**: Tailwind CSS (Utility-first, Dark mode, fully responsive flexbox layouts)
-- **File Handling**: React Dropzone (Client-side MIME type validation)
-- **HTTP Client**: Axios
-- **Markdown Rendering**: React Markdown + `remark-gfm` (For rendering rich text, bolding, lists, and tables returned by the LLM)
-
-### 2. Python Backend (FastAPI)
-*Ideal for high-performance local development, data science workflows, and advanced vector search.*
-- **Core API**: FastAPI & Uvicorn (Asynchronous, lightning-fast routing)
-- **AI Integration**: Official `google-genai` SDK
-- **Models**: Gemini 2.5 Flash (LLM for text generation and OCR), `gemini-embedding-001` (for generating 768-dimensional embeddings)
-- **Vector Database**: ChromaDB (Local persistent database utilizing HNSW indexing for rapid semantic similarity search)
-- **Document Extractors**: 
-  - `PyMuPDF` (High-fidelity PDF parsing)
-  - `python-docx` (XML-based Word parsing)
-  - `pandas` & `openpyxl` (Tabular Excel parsing)
-  - `Pillow` (Image preprocessing)
-
-### 3. Node.js Backend (Express.js)
-*Used primarily for production deployment on Render and Hugging Face Spaces where C++ database bindings can be problematic.*
-- **Core API**: Express.js & Multer (Stream-based file uploads)
-- **AI Integration**: `@google/generative-ai` SDK
-- **Vector Database**: Custom Persistent JSON Vector Store (Zero-dependency, mathematically calculates cosine similarity in-memory)
-- **Document Extractors**: 
-  - `pdf-parse` (Lightweight PDF reading)
-  - `mammoth` (Word document to HTML/text conversion)
-  - `exceljs` (Excel spreadsheet reading)
-  - `tesseract.js` & `sharp` (Client/Server-side OCR & image compression)
-
-### 4. Deployment & DevOps
-- **Docker**: Containerized multi-stage builds (`Dockerfile`) to drastically reduce final image size.
-- **Render Deployment**: Infrastructure-as-code configuration included (`render.yaml`) which provisions web services and a persistent disk volume (`/app/server/data`) to prevent vector data loss on server restart.
-- **Hugging Face Spaces**: Optimized to run via a non-root user (uid 1000) on Port 7860 to comply with Hugging Face security protocols.
+The original file never leaves your browser. Only the extracted text chunks are sent to the server for embedding, and **everything is wiped when you close the tab**.
 
 ---
 
-## 🏗️ Architecture Overview
+## Why RAG, not "just an LLM"
 
-**How RAG works in AskDocs:**
-1. **The Ingestion Phase**: When a user drops a file, the Extractor service reads the raw text. The Chunker service breaks this massive text into smaller, overlapping 500-word windows. The Embedder service sends these chunks to the Gemini Embedding API, turning text into mathematical vectors. Finally, these vectors and their corresponding text are saved into the Vector Database (ChromaDB or JSON Store).
-2. **The Querying Phase**: When a user asks a question, the exact same Embedding API turns the *question* into a vector. The Vector Database mathematically calculates the "Cosine Similarity" between the question vector and all document vectors, returning the top 5 closest matches. These 5 text chunks are injected into a strict prompt, and the Gemini LLM reads them to formulate a human-readable answer.
+A bare LLM has two problems for document Q&A:
+
+1. **Hallucinations** — it confidently invents facts that aren't in your document.
+2. **No access** — it can't read your private files at all.
+
+RAG fixes both. Instead of asking the model to remember everything, you give it a short, relevant slice of your document right before the question. The model is told: *answer only from this slice; if it's not in there, say so.* No hallucinations. Full source traceability. Your data stays out of any training pipeline.
 
 ---
 
-## 🚀 Installation & Quick Start
+## How it works
 
-### Prerequisites
-- **Google Gemini API Key** (Get one from [Google AI Studio](https://aistudio.google.com/))
-- Python 3.10+ (If using Python Backend)
-- Node.js 18.x+ (If using Node.js Backend / Frontend)
+```mermaid
+flowchart LR
+  subgraph Browser["In your browser"]
+    A[Upload PDF / DOCX / XLSX / Image]
+    B[Extract text<br/>locally]
+    A --> B
+  end
 
-### Setup via Python Backend (Recommended for Local Dev)
+  subgraph Server["Server"]
+    C[Chunk<br/>500-word windows<br/>100-word overlap]
+    D[Gemini Embeddings<br/>768-dim vectors]
+    E[(Per-user<br/>vector store)]
+    B -- text chunks only --> C
+    C --> D --> E
+  end
 
-For Windows users, we provide automated setup scripts:
-1. Clone the repository and navigate into it.
-2. Run `setup.bat` to create the virtual environment, install all dependencies, and scaffold the `.env` file.
-3. Add your `GEMINI_API_KEY` to the newly created `backend/.env` file.
-4. Run `start.bat` to boot up the backend API and frontend React server simultaneously.
-5. Visit `http://localhost:5173`.
+  subgraph Query["When you ask"]
+    F[Your question]
+    G[Embed question]
+    H[Cosine top-K]
+    I[Gemini 2.5 Flash<br/>with retrieved context]
+    F --> G --> H
+    E --> H
+    H --> I
+    I --> J[Cited answer]
+  end
+```
 
-### Setup via Node.js Backend (Production Server)
+**The whole loop:** text extraction in the browser → chunk → embed → store → embed query → cosine top-K retrieval → grounded prompt → Gemini → cited answer.
 
-1. Navigate to the server folder:
+---
+
+## Features
+
+- **Five file formats** — PDF, DOCX, XLSX/XLS, PNG, JPG. Scanned PDFs and images route through Tesseract OCR automatically.
+- **Browser-side extraction** — your original file never reaches the server. Only the text content does.
+- **Inline citations** — every claim cites a filename and page number. Click to expand the source chunk.
+- **Per-user isolation** — every vector in storage is tagged with your Firebase UID. There's no API path to read another user's data.
+- **Ephemeral sessions** — closing the tab clears your chat history *and* tells the server to wipe your embedded chunks.
+- **Parallel embedding** — chunks are embedded 5 at a time, so a 100-chunk doc finishes in seconds, not minutes.
+- **Locked-down API** — strict CORS, full CSP, per-IP rate limits, JWT-verified bearer auth, atomic re-uploads (old data is only deleted once the new version succeeds).
+- **Chat export** — download the full conversation as a styled PDF with branded header, avatars, and rendered markdown.
+
+---
+
+## Tech stack
+
+| Layer | Choice | Notes |
+|-------|--------|-------|
+| Frontend | React 18, Vite, Tailwind | Code-split per route; pdfjs + xlsx lazy-loaded |
+| Auth | Firebase Google OAuth | Server verifies JWT via Google's x509 certs (cached 6 hrs) |
+| LLM | Gemini 2.5 Flash | Cheap, fast, citation-friendly |
+| Embeddings | `gemini-embedding-001` | 768-dim, batched 5-parallel |
+| Vector store | Hand-rolled JSON + cosine similarity | Zero deps; atomic tmp+rename writes |
+| Backend | Node 20 + Express | Single container, simple deploy |
+| OCR | tesseract.js | Lazy-loaded — only paid for if you upload an image |
+| Deploy | Docker → Hugging Face Spaces | Also runs on Render, Fly, Railway |
+
+There's also a legacy **Python/FastAPI** backend in [`backend/`](backend/) that uses ChromaDB for vector search. It's not maintained or deployed — kept for reference only. All current development is on the Node stack.
+
+---
+
+## Quick start
+
+You need a [Google Gemini API key](https://aistudio.google.com/) (free tier works) and a [Firebase project](https://console.firebase.google.com/) with Google sign-in enabled.
+
 ```bash
+# 1. Clone
+git clone https://github.com/ADiTyaRaj8969/AsksDocs.git
+cd AsksDocs
+
+# 2. Server
 cd server
 npm install
-```
-2. Create `.env` inside the `server/` directory:
-```env
-GEMINI_API_KEY=your_gemini_api_key_here
-PORT=8000
-```
-3. Start the server:
-```bash
-npm run dev
-```
+cp .env.example .env       # then add GEMINI_API_KEY=...
+npm run dev                # API on :5000
 
-### Setup Frontend
-Open a new terminal window:
-```bash
+# 3. Frontend (new terminal)
 cd frontend
 npm install
-npm run dev
+cp .env.example .env       # then add VITE_FIREBASE_* values
+npm run dev                # UI on :5173
 ```
-The frontend will be available at **[http://localhost:5173](http://localhost:5173)**.
+
+Open `http://localhost:5173`, sign in, drop a PDF in the sidebar, ask away.
 
 ---
 
-## 🐳 Docker Deployment
+## Deploy
 
-To build and run the entire application (React Frontend + Node.js Backend) via Docker:
+### Hugging Face Spaces
+
+The repo *is* the Space. One Dockerfile builds the frontend and serves it from the same Node process on port 7860 (HF's required port). The YAML frontmatter at the top of this README is what HF reads to provision the Space.
+
+```bash
+git remote add hf https://huggingface.co/spaces/<your-username>/<space-name>
+git push hf main:main
+```
+
+Add `GEMINI_API_KEY` and your `VITE_FIREBASE_*` values as Space secrets in the HF UI.
+
+### Docker (anywhere)
 
 ```bash
 docker build -t askdocs .
-docker run -p 7860:7860 -e GEMINI_API_KEY="your_api_key" askdocs
+docker run -p 7860:7860 -e GEMINI_API_KEY=... askdocs
 ```
 
-The application will be accessible at `http://localhost:7860`.
+### Render
+
+A [`render.yaml`](render.yaml) is included for one-click deploys with a persistent disk at `/app/server/data` so vectors survive restarts.
 
 ---
 
-## 🧰 Utility Scripts
+## Configuration
 
-- **`generate_srs.py`**: A robust Python automation script designed to dynamically generate the project's Software Requirements Specification (SRS) document in `.docx` format, saving hours of manual documentation work for academic submissions.
-- **`convert_viva.py`**: A specialized utility script used to process, extract, and format Q&A or viva-voce text data, likely used for preparing evaluation datasets or testing the LLM's accuracy against known academic questions.
-
----
-
-## 📡 API Reference
-
-Both backends adhere to the same REST endpoints:
-
-| Method   | Endpoint                | Description                                         |
-| :------- | :---------------------- | :-------------------------------------------------- |
-| `POST`   | `/api/upload`           | Upload, extract, embed, and store a document.       |
-| `POST`   | `/api/query`            | Ask a question and retrieve an answer + citations.  |
-| `GET`    | `/api/documents`        | List all stored documents in the vector database.   |
-| `DELETE` | `/api/documents/{name}` | Delete a document and purge its vectors.            |
-| `GET`    | `/health`               | API Health check.                                   |
+| Variable | Side | Required | Default | Purpose |
+|----------|------|----------|---------|---------|
+| `GEMINI_API_KEY` | server | yes | — | LLM + embeddings credential |
+| `PORT` | server | no | `5000` | API listen port (HF expects `7860`) |
+| `DATA_DIR` | server | no | `server/vector_db` | Where `store.json` and uploads live. Mount a persistent volume here in production. |
+| `ALLOWED_ORIGINS` | server | no | — | Comma-separated extra CORS origins |
+| `SPACE_HOST` | server | auto | — | Injected by HF Spaces; allowed automatically |
+| `VITE_FIREBASE_API_KEY` and friends | frontend | yes | — | From Firebase Console → Project Settings → your web app |
 
 ---
 
-*Developed as part of the Advanced Web Technology (AWT) curriculum.*
+## Security model
+
+This is genuinely the strongest part of the project. Worth reading if you plan to host it for real users.
+
+| Threat | Defense |
+|--------|---------|
+| User A reads User B's data | All vector-store operations scope by `req.user.uid` (Firebase UID). There is no code path that returns a chunk without a matching UID. |
+| Prompt injection from the document itself | Retrieved chunks are fenced in `===BEGIN CONTEXT===` markers; the system prompt explicitly tells Gemini to ignore instructions found in the context. |
+| Token theft / replay | Server verifies the Firebase JWT signature against Google's published x509 certs (cached 6 hrs). Bearer-only — no cookies — so CSRF is structurally impossible. |
+| Path traversal in document names | Names are sanitised (`/`, `\` replaced, capped at 255 chars). All file ops are in `try/catch`. |
+| Resource exhaustion | Per-IP rate limits (10 uploads / 30 queries / 60 doc ops per minute). 60s LLM timeout. 5K-chunk per-document and 25K-chunk per-user caps. |
+| XSS / clickjacking | Full CSP with `frame-ancestors` allowlisted to `self` + HF Spaces only. `script-src 'self'`. No `unsafe-eval`. |
+| Data leaving the machine | The original file is never uploaded. Closing the tab triggers `DELETE /api/documents` and wipes all of your vectors server-side. |
+| Vulnerable dependencies | `npm audit --omit=dev` reports **0 vulnerabilities** in both projects. |
+
+---
+
+## API reference
+
+All endpoints require `Authorization: Bearer <firebase-jwt>`. Rate-limited per IP.
+
+| Method | Path | Body | Response |
+|--------|------|------|----------|
+| `POST` | `/api/upload` | `{ documentName, chunks: [{ text, pageNumber }] }` | `{ message, documentName, chunksCreated }` |
+| `POST` | `/api/query` | `{ question, top_k? }` (top_k clamped 1-20) | `{ answer, citations: [{ documentName, pageNumber, chunkText, score }] }` |
+| `GET`  | `/api/documents` | — | `{ documents: [{ name, chunks, size }] }` |
+| `DELETE` | `/api/documents/:name` | — | `{ message }` |
+| `DELETE` | `/api/documents` | — | Wipes **all** of your data (used for session reset) |
+| `GET`  | `/health` | — | `{ status, version, timestamp }` (public, no auth) |
+
+---
+
+## Project structure
+
+```
+AsksDocs/
+├── server/                  Node + Express API
+│   ├── index.js             entrypoint · CSP · rate limits · static serve
+│   ├── middleware/auth.js   Firebase JWT verification
+│   ├── routes/              upload · query · documents
+│   └── services/            embedder · llm · vectorStore
+├── frontend/                React + Vite SPA
+│   ├── src/components/      ChatInterface · FileUpload · DocumentList · HomePage
+│   ├── src/contexts/        AuthContext
+│   ├── src/lib/             firebase · chunker · extractor (with OCR fallback)
+│   └── src/api/api.js       axios client with bearer token attached
+├── backend/                 legacy Python/FastAPI implementation (not deployed)
+├── Dockerfile               multi-stage: build frontend → run server
+├── render.yaml              Render deploy config
+└── README.md                ← you are here (HF frontmatter at top)
+```
+
+---
+
+## Known limitations
+
+These are honest gaps, not hidden bugs:
+
+- **No streaming responses.** Gemini's full answer arrives in one shot — there's no token-by-token UI yet.
+- **In-memory vector store.** `store.json` is fine up to a few hundred thousand chunks. Past that, switch to ChromaDB or pgvector.
+- **Single-turn Q&A.** Each question is answered independently. No "based on what you just said" follow-ups.
+- **Free Gemini tier rate-limits aggressively.** If you see "quota exceeded", you hit the per-minute or per-day cap.
+- **No tests.** Manual smoke testing only. This is the single biggest gap if you intend to use this in production.
+
+---
+
+## License
+
+MIT. See [LICENSE](LICENSE).
+
+---
+
+Built by [Aditya Raj](https://github.com/ADiTyaRaj8969).
