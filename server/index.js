@@ -10,11 +10,12 @@ import queryRouter from './routes/query.js'
 import documentsRouter from './routes/documents.js'
 import { requireAuth } from './middleware/auth.js'
 import { getUserChunkCount } from './services/vectorStore.js'
+import { warmEmbedder } from './services/embedder.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-if (!process.env.GEMINI_API_KEY) {
-  console.error('  GEMINI_API_KEY is not set. Add it to server/.env')
+if (!process.env.GROQ_API_KEY) {
+  console.error('  GROQ_API_KEY is not set. Add it to server/.env (https://console.groq.com/keys)')
   process.exit(1)
 }
 
@@ -146,6 +147,12 @@ app.use((err, _req, res, _next) => {
 const server = app.listen(PORT, () => {
   console.log(`\n  AskDocs API  →  http://localhost:${PORT}`)
   console.log(`Health check →  http://localhost:${PORT}/health\n`)
+
+  // Preload the local embedding model so the first upload/query isn't slowed
+  // by a cold model load. Failure here is non-fatal — it'll load on first use.
+  warmEmbedder()
+    .then(() => console.log('[Embedder] Local model ready.'))
+    .catch((err) => console.error('[Embedder] Warm-up failed (will retry on demand):', err.message))
 })
 
 // Graceful shutdown — finish in-flight requests before exiting

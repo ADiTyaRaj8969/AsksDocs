@@ -78,7 +78,8 @@ router.post('/upload', async (req, res) => {
     })
   } catch (err) {
     console.error('[Upload Error]', err)
-    const isQuota = err.message?.toLowerCase().includes('quota') || err.message?.includes('429')
+    const msg = err.message?.toLowerCase() || ''
+    const isQuota = err.status === 429 || msg.includes('quota') || msg.includes('rate limit') || msg.includes('429')
     res.status(500).json({
       error: isQuota
         ? 'AI service quota exceeded. Please try again later.'

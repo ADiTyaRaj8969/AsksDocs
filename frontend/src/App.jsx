@@ -70,7 +70,7 @@ export default function App() {
               </span>
               <span className="hidden sm:inline-flex items-center gap-1.5 text-[10px] font-medium
                 px-2.5 py-1 rounded-full bg-white border border-stone-200 text-stone-500">
-                Gemini 2.5 Flash
+                Llama 3.3 70B
               </span>
 
               <div className="flex items-center gap-2 pl-3 border-l border-stone-200">

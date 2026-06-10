@@ -26,7 +26,9 @@ COPY frontend/ ./
 RUN NODE_OPTIONS=--max-old-space-size=1024 npm run build
 
 # ── Stage 2: Production Express server ─────────────────────────────────────
-FROM node:20-alpine AS production
+# Debian (glibc) base — onnxruntime-node, used by the local embedding model,
+# ships glibc-only prebuilt binaries and will not load on Alpine (musl).
+FROM node:20-slim AS production
 
 WORKDIR /app
 
@@ -45,15 +47,15 @@ USER 1000
 
 EXPOSE 7860
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
-  CMD wget -qO- http://localhost:7860/health || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s \
+  CMD node -e "require('http').get('http://localhost:7860/health',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"
 
 ENV NODE_ENV=production
 ENV PORT=7860
 ENV DATA_DIR=/app/server/data
 ENV FIREBASE_PROJECT_ID=asks-docs
-# Increase heap for embedding large documents in production
-ENV NODE_OPTIONS=--max-old-space-size=512
+# Increase heap for embedding large documents in production (local model + in-memory vector store)
+ENV NODE_OPTIONS=--max-old-space-size=1024
 
 WORKDIR /app/server
 CMD ["node", "index.js"]

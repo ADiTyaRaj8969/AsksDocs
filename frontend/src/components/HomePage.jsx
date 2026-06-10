@@ -92,7 +92,7 @@ export default function HomePage() {
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full
             border border-brand/20 bg-brand/[0.06] text-xs font-semibold text-brand">
             <span className="w-1.5 h-1.5 rounded-full bg-brand animate-pulse-brand"/>
-            Powered by Gemini 2.5 Flash · RAG Architecture
+            Powered by Llama 3.3 70B · RAG Architecture
           </div>
 
           <h1 className="text-5xl sm:text-6xl font-extrabold leading-[1.06] tracking-tight
@@ -172,7 +172,7 @@ export default function HomePage() {
             { n: '01', icon: <UploadIcon/>, label: 'Upload Documents', desc: 'PDF · DOCX · XLSX · PNG · JPG' },
             { n: '02', icon: <EmbedIcon/>,  label: 'Embedding Generation', desc: 'Semantic chunk vectors' },
             { n: '03', icon: <VecIcon/>,    label: 'Vector Search', desc: 'Top-K retrieval via ChromaDB' },
-            { n: '04', icon: <GeminiIcon/>, label: 'Gemini Processing', desc: 'RAG prompt construction' },
+            { n: '04', icon: <GeminiIcon/>, label: 'LLM Processing', desc: 'RAG prompt construction' },
             { n: '05', icon: <AnsIcon/>,    label: 'Intelligent Answer', desc: 'Cited, contextual response' },
           ].map(({ n, icon, label, desc }, i, arr) => (
             <div key={n} className="flex sm:flex-col items-center sm:text-center gap-3 sm:gap-2 flex-1">
@@ -286,7 +286,7 @@ export default function HomePage() {
               ))}
             </ul>
             <div className="flex flex-wrap gap-1.5 pt-1">
-              {['Gemini 2.5', 'ChromaDB', 'RAG'].map(t => (
+              {['Llama 3.3', 'MiniLM', 'RAG'].map(t => (
                 <span key={t}
                   className="text-[10px] font-semibold px-2 py-0.5 rounded-full
                     bg-brand/[0.07] text-brand border border-brand/15">

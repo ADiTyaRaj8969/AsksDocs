@@ -4,8 +4,8 @@ services:
     runtime: docker
     dockerfilePath: ./Dockerfile
     envVars:
-      - key: GEMINI_API_KEY
-        sync: false          # Paste your key in the Render dashboard
+      - key: GROQ_API_KEY
+        sync: false          # Paste your Groq key (https://console.groq.com/keys) in the Render dashboard
       - key: FIREBASE_PROJECT_ID
         sync: false          # Your Firebase project ID for token verification
       - key: NODE_ENV
