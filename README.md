@@ -41,7 +41,7 @@ Large language models confidently invent facts that aren't in your document — 
 
 ## The solution
 
-ASK Docs uses **Retrieval-Augmented Generation**. Your document is chunked, embedded into a vector space, and indexed under your user ID. When you ask a question, the *question* is embedded too — the top-K most semantically similar chunks are pulled back and given to Gemini as grounding context. The model is instructed to answer **only** from those chunks, citing the source page on every claim. If the answer isn't in your document, it says so.
+ASK Docs uses **Retrieval-Augmented Generation**. Your document is chunked, embedded into a vector space, and indexed under your user ID. When you ask a question, the *question* is embedded too — the top-K most semantically similar chunks are pulled back and given to the LLM (Llama 3.3 70B via Groq) as grounding context. The model is instructed to answer **only** from those chunks, citing the source page on every claim. If the answer isn't in your document, it says so.
 
 > No hallucinations. Full source traceability. Your data never trains anyone's model.
 
@@ -61,7 +61,7 @@ flowchart LR
 
   subgraph Server["Server"]
     C[Chunk<br/>500-word windows<br/>100-word overlap]
-    D[Gemini Embeddings<br/>768-dim · batched 5x]
+    D[Local embeddings<br/>MiniLM · 384-dim]
     E[(Per-user<br/>vector store)]
     B -- text chunks only --> C
     C --> D --> E
@@ -71,7 +71,7 @@ flowchart LR
     F[Your question]
     G[Embed question]
     H[Cosine top-K]
-    I[Gemini 2.5 Flash<br/>with retrieved context]
+    I[Llama 3.3 70B · Groq<br/>with retrieved context]
     F --> G --> H
     E --> H
     H --> I
@@ -96,7 +96,7 @@ flowchart TD
   D -- yes, scanned --> E[Tesseract OCR<br/>browser-side]
   D -- no --> F
   E --> F[Sliding-window chunking<br/>500 words · 100 overlap]
-  F --> G[Gemini embedding-001<br/>5 chunks in parallel]
+  F --> G[Local MiniLM embeddings<br/>batched in-process]
   G --> H[Atomic store<br/>scoped by userId]
   H --> I([Return chunksCreated])
 
@@ -112,12 +112,12 @@ flowchart TD
 flowchart TD
   A([User submits question]) --> B{Non-empty<br/>and ≤ 2000 chars?}
   B -- no --> X[/HTTP 400 — rejected/]
-  B -- yes --> C[Embed query<br/>RETRIEVAL_QUERY task]
+  B -- yes --> C[Embed query<br/>local MiniLM]
   C --> D[Cosine top-K<br/>scoped by userId · k clamped 1-20]
   D --> E{Any relevant<br/>chunks?}
   E -- no --> Y[/Empty-state answer/]
   E -- yes --> F[Build grounded prompt<br/>===BEGIN CONTEXT=== fenced]
-  F --> G[Gemini 2.5 Flash<br/>60-second timeout]
+  F --> G[Llama 3.3 70B · Groq<br/>60-second timeout]
   G --> H[Deduplicate citations<br/>by document + page]
   H --> I([Return answer + citations])
 
@@ -161,7 +161,7 @@ flowchart TD
 
 ### Built for speed
 
-- **Parallel embedding** — 5 chunks at a time
+- **Local embeddings** — no API quota, runs in-process
 - **Hashed-asset** immutable caching
 - **Lazy-loaded OCR** (only paid for if you upload an image)
 - **Atomic re-uploads** — old data is kept until the new version succeeds
@@ -190,8 +190,8 @@ flowchart TD
 |-------|--------|-------|
 | **Frontend** | React 18 · Vite · Tailwind | Code-split per route; `pdf.js`, `xlsx`, `tesseract.js` all lazy-loaded |
 | **Auth** | Firebase Google OAuth | Server verifies the JWT against Google's x509 certs (cached 6 hrs) |
-| **LLM** | Gemini 2.5 Flash | Fast · cheap · citation-friendly |
-| **Embeddings** | `gemini-embedding-001` | 768-dim vectors, batched 5-parallel |
+| **LLM** | Llama 3.3 70B via Groq | Fast · free tier · citation-friendly |
+| **Embeddings** | `all-MiniLM-L6-v2` (local) | 384-dim vectors, runs in-process — no API key, no quota |
 | **Vector store** | Hand-rolled JSON + cosine similarity | Zero deps; atomic `tmp + rename` writes |
 | **Backend** | Node 20 + Express | Single container; serves both API and React build |
 | **OCR** | tesseract.js | Browser-side — no cloud OCR cost |
@@ -205,7 +205,7 @@ A legacy **Python / FastAPI** backend lives in [`backend/`](backend/) using Chro
 
 ## Quick start
 
-You need a [Google Gemini API key](https://aistudio.google.com/) (free tier works) and a [Firebase project](https://console.firebase.google.com/) with Google sign-in enabled.
+You need a [Groq API key](https://console.groq.com/keys) (free tier works) and a [Firebase project](https://console.firebase.google.com/) with Google sign-in enabled. Embeddings run locally — no embedding API key required.
 
 ```bash
 git clone https://github.com/ADiTyaRaj8969/AsksDocs.git
@@ -214,7 +214,7 @@ cd AsksDocs
 # Backend
 cd server
 npm install
-cp .env.example .env          # add GEMINI_API_KEY=...
+cp .env.example .env          # add GROQ_API_KEY=...
 npm run dev                   # API on :5000
 
 # Frontend (new terminal)
@@ -244,7 +244,7 @@ git remote add hf https://huggingface.co/spaces/<your-username>/<space-name>
 git push hf main:main
 ```
 
-Add `GEMINI_API_KEY` and your `VITE_FIREBASE_*` values as **Space secrets** in the HF settings.
+Add `GROQ_API_KEY` and your `VITE_FIREBASE_*` values as **Space secrets** in the HF settings.
 
 </details>
 
@@ -255,7 +255,7 @@ Add `GEMINI_API_KEY` and your `VITE_FIREBASE_*` values as **Space secrets** in t
 
 ```bash
 docker build -t askdocs .
-docker run -p 7860:7860 -e GEMINI_API_KEY=... askdocs
+docker run -p 7860:7860 -e GROQ_API_KEY=... askdocs
 ```
 
 </details>
@@ -277,7 +277,7 @@ A [`render.yaml`](render.yaml) is included for one-click deploys, with a persist
 
 | Variable | Side | Required | Default | Purpose |
 |----------|------|----------|---------|---------|
-| `GEMINI_API_KEY` | server | yes | — | LLM + embeddings credential |
+| `GROQ_API_KEY` | server | yes | — | LLM credential (embeddings run locally) |
 | `PORT` | server | no | `5000` | API listen port (HF expects `7860`) |
 | `DATA_DIR` | server | no | `server/vector_db` | Where `store.json` lives. Mount a persistent volume here. |
 | `ALLOWED_ORIGINS` | server | no | — | Comma-separated extra CORS origins |
@@ -295,7 +295,7 @@ This is genuinely the strongest part of the project. Worth reading if you plan t
 | Threat | Defense |
 |--------|---------|
 | **User A reads User B's data** | Every vector-store op scopes by `req.user.uid`. No code path returns a chunk without a matching UID. |
-| **Prompt injection from the document** | Retrieved context is fenced with `===BEGIN CONTEXT===` markers; the system prompt explicitly tells Gemini to ignore instructions found in context. |
+| **Prompt injection from the document** | Retrieved context is fenced with `===BEGIN CONTEXT===` markers; the system prompt explicitly tells the model to ignore instructions found in context. |
 | **Token replay / CSRF** | Server verifies the Firebase JWT against Google's x509 certs (cached 6 hrs). Bearer-only — no cookies — so CSRF is structurally impossible. |
 | **Path traversal** | Document names sanitised (`/` and `\` stripped, 255-char cap). All file ops in `try / catch`. |
 | **Resource exhaustion** | Per-IP rate limits (10 uploads · 30 queries · 60 doc ops per minute). 60s LLM timeout. 5K-chunk-per-doc and 25K-chunk-per-user caps. |
@@ -353,10 +353,10 @@ AsksDocs/
 
 These are honest gaps, not hidden bugs.
 
-- **No streaming responses** — Gemini's full answer arrives in one shot. Token-by-token streaming would be a nice future addition.
+- **No streaming responses** — the model's full answer arrives in one shot. Token-by-token streaming would be a nice future addition.
 - **In-memory vector store** — `store.json` is loaded into memory at startup. Fine up to a few hundred thousand chunks; past that, swap in ChromaDB or pgvector.
 - **Single-turn Q&A** — each question is answered independently. There's no "based on what you said earlier" follow-up support.
-- **Free Gemini tier rate-limits** — if you see *"quota exceeded"*, you've hit the per-minute or per-day cap.
+- **Free Groq tier rate-limits** — if you see *"quota exceeded"*, you've hit Groq's per-minute or per-day cap. Embeddings are local and never rate-limited.
 - **No automated tests** — manual smoke testing only. The biggest gap if you intend production use.
 
 <br />
