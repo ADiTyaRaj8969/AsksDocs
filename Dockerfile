@@ -32,6 +32,12 @@ FROM node:20-slim AS production
 
 WORKDIR /app
 
+# onnxruntime-node (local embedding model) needs the OpenMP runtime (libgomp1);
+# ca-certificates lets it fetch the model from huggingface.co over HTTPS on first run.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      libgomp1 ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY server/package*.json ./server/
 RUN cd server && npm ci --omit=dev
 

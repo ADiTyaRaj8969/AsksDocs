@@ -23,7 +23,7 @@ Your file never leaves your browser. Every answer is traceable to a page.
   <img src="https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black" />
   <img src="https://img.shields.io/badge/Vite-5-646CFF?logo=vite&logoColor=white" />
   <img src="https://img.shields.io/badge/Tailwind-3-06B6D4?logo=tailwindcss&logoColor=white" />
-  <img src="https://img.shields.io/badge/Gemini-2.5_Flash-4285F4?logo=google&logoColor=white" />
+  <img src="https://img.shields.io/badge/Groq-Llama_3.3_70B-F55036?logo=meta&logoColor=white" />
   <img src="https://img.shields.io/badge/Firebase-Auth-FFCA28?logo=firebase&logoColor=black" />
   <img src="https://img.shields.io/badge/Docker-multi--stage-2496ED?logo=docker&logoColor=white" />
   <img src="https://img.shields.io/badge/license-MIT-22c55e" />
