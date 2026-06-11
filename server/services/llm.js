@@ -31,7 +31,10 @@ RULES:
  * @returns {Promise<string>}
  */
 export async function generateAnswer(question, contextChunks) {
-  const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
+  // Trim to defend against a stray newline/space in the API key (e.g. pasted
+  // into a hosting dashboard's secret field) — node-fetch rejects header values
+  // containing whitespace, which surfaces as an opaque "Connection error".
+  const groq = new Groq({ apiKey: process.env.GROQ_API_KEY?.trim() })
 
   const contextParts = contextChunks.map((chunk, i) =>
     `[Source ${i + 1} — ${chunk.documentName}, Page ${chunk.pageNumber}]\n${chunk.text}`
